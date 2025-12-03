@@ -2,9 +2,9 @@ import torch
 import torch.nn.functional as F
 
 
-def _process_block_inputs(data: torch.Tensor, block_size: torch.Tensor) -> tuple(
-    torch.Tensor, torch.Tensor
-):
+def _process_block_inputs(
+    data: torch.Tensor, block_size: torch.Tensor
+) -> tuple[torch.Tensor, torch.Tensor]:
     """
     Helper function for block replication.
     """

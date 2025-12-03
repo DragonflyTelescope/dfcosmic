@@ -18,6 +18,7 @@ def lacosmic(
     niter: int = 1,
     gain: float = 0.0,
     readnoise: float = 0.0,
+    device: torch.device | str = torch.device("cpu"),
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Remove cosmic rays from an image using the LA Cosmic algorithm by Pieter van Dokkum.
@@ -38,7 +39,8 @@ def lacosmic(
         The gain of the image in electrons/ADU. Default is 0.0.
     readnoise : float
         The read noise of the image in electrons. Default is 0.0.
-
+    device : torch.device | str
+        The device to use for computation. Default is torch.device("cpu").
     Returns:
         np.ndarray
             The image with cosmic rays removed.
@@ -51,17 +53,20 @@ def lacosmic(
     """
     # Set image to Torch tensor if it's a NumPy array
     if isinstance(image, np.ndarray):
-        image = torch.from_numpy(image)
+        image = torch.from_numpy(image).to(device)
+    else:
+        image = image.to(device)
     # Define kernels
     block_size_tuple = (2, 2)
-    block_size_tensor = torch.tensor(block_size_tuple)
+    block_size_tensor = torch.tensor(block_size_tuple, device=device)
     laplacian_kernel = torch.tensor(
-        [[0, -1, 0], [-1, 4, -1], [0, -1, 0]], dtype=torch.float32
+        [[0, -1, 0], [-1, 4, -1], [0, -1, 0]], dtype=torch.float32, device=device
     )
+    strel = torch.zeros((3, 3), device=device)
     # Initialize image
     clean_image = image.clone()
     del image  # Free up memory
-    final_crmask = torch.zeros(clean_image.shape, dtype=bool)
+    final_crmask = torch.zeros(clean_image.shape, dtype=bool, device=device)
     for iteration in range(niter):
         # Step 1: Laplacian detection
         # Reuse variable name 'temp' for intermediate calculations
@@ -100,12 +105,12 @@ def lacosmic(
         sigcliplow = sigclip * sigfrac
 
         # First growth - reuse cr_mask
-        cr_mask = dilation_pytorch(cr_mask, torch.zeros((3, 3)))
+        cr_mask = dilation_pytorch(cr_mask, strel)
         cr_mask *= sig_map
         cr_mask = (cr_mask > sigclip).float()
 
         # Second growth - reuse cr_mask again
-        cr_mask = dilation_pytorch(cr_mask, torch.zeros((3, 3)))
+        cr_mask = dilation_pytorch(cr_mask, strel)
         cr_mask *= sig_map
         cr_mask = (cr_mask > sigcliplow).float()
         del sig_map  # Done with significance map
