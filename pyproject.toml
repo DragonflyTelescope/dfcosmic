@@ -18,7 +18,7 @@ authors = [
 ]
 description = "A high-performance Python package for cosmic ray removal following the original paper by van Dokkum 2001."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 
 classifiers = [
   "Development Status :: 3 - Alpha",
