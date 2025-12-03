@@ -59,4 +59,12 @@ where = ["src"]
 [dependency-groups]
 dev = [
     "pytest>=8.3.4",
+    "pytest-cov>=6.0.0",
 ]
+
+[tool.pytest.ini_options]
+addopts = [
+    "--cov=dfcosmic",
+    "--cov-report=term-missing",
+]
+testpaths = ["tests"]
