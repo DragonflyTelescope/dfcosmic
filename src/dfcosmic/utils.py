@@ -2,7 +2,9 @@ import torch
 import torch.nn.functional as F
 
 
-def _process_block_inputs(data, block_size):
+def _process_block_inputs(data: torch.Tensor, block_size: torch.Tensor) -> tuple(
+    torch.Tensor, torch.Tensor
+):
     """
     Helper function for block replication.
     """
@@ -27,7 +29,9 @@ def _process_block_inputs(data, block_size):
     return data, block_size_int
 
 
-def block_replicate_torch(data, block_size, conserve_sum=True):
+def block_replicate_torch(
+    data: torch.Tensor, block_size: int | list[int], conserve_sum: bool = True
+) -> torch.Tensor:
     """
     Upsample a data array by block replication.
 
@@ -47,7 +51,7 @@ def block_replicate_torch(data, block_size, conserve_sum=True):
 
     Returns
     -------
-    output : array-like
+    output : torch.Tensor
         The block-replicated data. Note that when ``conserve_sum`` is
         `True`, the dtype of the output array will be float.
 
@@ -63,13 +67,17 @@ def block_replicate_torch(data, block_size, conserve_sum=True):
     return data
 
 
-def convolve(image, kernel):
+def convolve(image: torch.Tensor, kernel: torch.Tensor) -> torch.Tensor:
     """
     Applies 2D convolution using spatial domain (direct convolution)
-    Args:
-        image: image (torch.tensor) - 2D
-        kernel: kernel (torch.tensor) - 2D
-    Returns:
+    Parameters
+    ----------
+        image : torch.tensor
+            Input for convolution
+        kernel : torch.tensor
+            Kernel for convolution
+    Returns
+    -------
         convolved image (torch.tensor)
     """
     # Add batch and channel dimensions: (H, W) -> (1, 1, H, W)
@@ -87,7 +95,7 @@ def convolve(image, kernel):
     return result.squeeze(0).squeeze(0)
 
 
-def median_filter_torch(image, kernel_size=3):
+def median_filter_torch(image: torch.Tensor, kernel_size: int = 3) -> torch.Tensor:
     """Applies a median filter using torch operations."""
     # b, c, h, w = image.shape
     h, w = image.shape
@@ -108,7 +116,12 @@ def median_filter_torch(image, kernel_size=3):
 
 
 # Definition of the dilation using PyTorch
-def dilation_pytorch(image, strel, origin=(0, 0), border_value=0):
+def dilation_pytorch(
+    image: torch.Tensor,
+    strel: torch.Tensor,
+    origin: tuple[int, int] = (0, 0),
+    border_value: float = 0,
+):
     """
     Taken from https://stackoverflow.com/questions/56235733/is-there-a-tensor-operation-or-function-in-pytorch-that-works-like-cv2-dilate
     """
