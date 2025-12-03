@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dfcosmic"
+version = "0.0.1"
+dynamic = []
+authors = [
+  { name = "Carter Rhea", email = "carter.rhea@dragonfly1000.com" },
+  { name = "Steven Janssens", email = "steven.janssens@dragonfly1000.com" },
+  { name = "Pieter van Dokkum", email = "pieter.vandokkum@dragonfly1000.com" },
+  { name = "Imad Pasha", email = "imad.pasha@dragonfly1000.com" },
+  { name = "Roberto Abraham", email = "roberto.abraham@dragonfly1000.com" },
+  { name = "William P. Bowman", email = "william.bowman@dragonfly1000.com" },
+  { name = "Deborah Lokhorst", email = "deborah.lokhorst@dragonfly1000.com" },
+  { name = "Seery Chen", email = "seery.chen@dragonfly1000.com" },
+]
+description = "A high-performance Python package for cosmic ray removal following the original paper by van Dokkum 2001."
+readme = "README.md"
+requires-python = ">=3.8"
+
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Astronomy",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Operating System :: OS Independent",
+]
+
+dependencies = [
+  "numpy>=1.17.0",
+  "torch>=1.9.0",
+]
+
+[project.optional-dependencies]
+docs = [
+  "sphinx>=5.0.0",
+  "sphinx-rtd-theme>=1.0.0",
+  "sphinx-autoapi>=2.0.0",
+  "nbsphinx>=0.8.9",
+  "ipykernel>=6.0.0",
+  "matplotlib>=3.4.0",
+  "sphinx-copybutton==0.5.2",
+  "sphinx-nefertiti==0.8.10",
+]
+
+[project.urls]
+Homepage = "https://github.com/DragonflyTelescope/dfcosmic"
+Issues = "https://github.com/DragonflyTelescope/dfcosmic/issues"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+]
