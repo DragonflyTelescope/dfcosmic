@@ -4,7 +4,7 @@ from torch.nn.functional import avg_pool2d
 
 from dfcosmic.utils import (
     block_replicate_torch,
-    convolve_fft,
+    convolve,
     dilation_pytorch,
     median_filter_torch,
 )
@@ -59,49 +59,72 @@ def lacosmic(
         [[0, -1, 0], [-1, 4, -1], [0, -1, 0]], dtype=torch.float32
     )
     # Initialize image
-    image_original = image.clone()
+    clean_image = image.clone()
     del image  # Free up memory
-    final_crmask = torch.zeros(image_original.shape, dtype=bool)
+    final_crmask = torch.zeros(clean_image.shape, dtype=bool)
     for iteration in range(niter):
         # Step 1: Laplacian detection
-        img_lp = block_replicate_torch(image_original, block_size_tensor)
-        img_lp = convolve_fft(img_lp, laplacian_kernel)
-        img_lp = torch.clip(img_lp, min=0)
-        img_lp = avg_pool2d(img_lp[None, None, :, :], block_size_tuple)[0, 0]
+        # Reuse variable name 'temp' for intermediate calculations
+        temp = block_replicate_torch(clean_image, block_size_tensor)
+        temp = convolve(temp, laplacian_kernel)
+        temp.clip_(min=0)  # In-place operation
+        temp = avg_pool2d(temp[None, None, :, :], block_size_tuple)[0, 0]
+
         # Step 2: Create noise model
-        noise_model = median_filter_torch(image_original, kernel_size=5).clip(1e-5)
+        noise_model = median_filter_torch(clean_image, kernel_size=5)
+        noise_model.clip_(min=1e-5)  # In-place
         noise_model = torch.sqrt(noise_model * gain + readnoise**2) / gain
-        # Step 3: Create significance map (i.e. laplacian by noise)
-        sig_map = img_lp / noise_model
-        sig_map /= 2  # Divide by 2 since block replication double counts edges
+
+        # Step 3: Create significance map
+        sig_map = temp / noise_model
+        del temp  # Done with Laplacian
+        sig_map /= 2
         sig_map -= median_filter_torch(sig_map, kernel_size=5)
+
         # Step 4: Initial Cosmic Ray Candidates
-        cr_mask = sig_map > sigclip
-        # Step 5: Reject objects (such as HII regions or stars)
-        img_lp = median_filter_torch(image_original, kernel_size=3)
-        img_lp = (
-            (img_lp - median_filter_torch(img_lp, kernel_size=7)) / noise_model
-        ).clip(min=0.01)
-        cr_mask2 = (sig_map / img_lp) > objlim
-        cr_mask = cr_mask * cr_mask2
+        cr_mask = (sig_map > sigclip).float()
+
+        # Step 5: Reject objects
+        # Reuse 'temp' for object flux calculation
+        temp = median_filter_torch(clean_image, kernel_size=3)
+        temp -= median_filter_torch(temp, kernel_size=7)
+        temp /= noise_model
+        temp.clip_(min=0.01)  # In-place
+        del noise_model  # Done with noise model
+
+        # Update cr_mask in-place
+        cr_mask *= ((sig_map / temp) > objlim).float()
+        del temp  # Done with object flux
+
         # Step 6: Neighbor pixel rejection
         sigcliplow = sigclip * sigfrac
-        # First growth - check at sigma clip
+
+        # First growth - reuse cr_mask
         cr_mask = dilation_pytorch(cr_mask, torch.zeros((3, 3)))
         cr_mask *= sig_map
         cr_mask = (cr_mask > sigclip).float()
 
-        # Second growth  - check at lower threshold
+        # Second growth - reuse cr_mask again
         cr_mask = dilation_pytorch(cr_mask, torch.zeros((3, 3)))
         cr_mask *= sig_map
         cr_mask = (cr_mask > sigcliplow).float()
+        del sig_map  # Done with significance map
+
+        # Check if any CRs were found
+        n_crs = cr_mask.sum().item()
+        if n_crs == 0:
+            break
+
         # Step 7: Image Cleaning
-        final_crmask = torch.logical_or(final_crmask, cr_mask)
-        # Mask CR pixels with large negative value
-        masked_data = image_original.clone()
-        masked_data[final_crmask] = 0
-        # Replace CR pixels with median values from 5x5 median filter
-        image_original[final_crmask] = median_filter_torch(masked_data, kernel_size=5)[
-            final_crmask
-        ]
-        return image_original.cpu().numpy(), final_crmask.cpu().numpy()
+        final_crmask |= cr_mask.bool()  # In-place OR operation
+
+        # Reuse 'temp' for masked data
+        temp = clean_image.clone()
+        temp[final_crmask] = -9999
+
+        # Replace CR pixels with median values
+        temp = median_filter_torch(temp, kernel_size=5)
+        clean_image[final_crmask] = temp[final_crmask]
+        del temp, cr_mask  # Clean up iteration variables
+
+    return clean_image.cpu().numpy(), final_crmask.cpu().numpy()

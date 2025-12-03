@@ -5,7 +5,7 @@ import torch
 from dfcosmic.utils import (
     _process_block_inputs,
     block_replicate_torch,
-    convolve_fft,
+    convolve,
     dilation_pytorch,
     median_filter_torch,
 )
@@ -114,26 +114,25 @@ class TestBlockReplicateTorch:
         assert result.shape == (6,)
 
 
-class TestConvolveFft:
-    """Tests for convolve_fft function."""
+class TestConvolve:
+    """Tests for convolve function."""
 
     def test_identity_kernel(self):
         """Test convolution with identity kernel produces expected output shape."""
         image = torch.randn((10, 10))
         kernel = torch.zeros((3, 3))
         kernel[1, 1] = 1.0
-        result = convolve_fft(image, kernel)
+        result = convolve(image, kernel)
         # Check that the result has the correct shape
         assert result.shape == image.shape
-        # FFT convolution shifts the image due to zero-padding and circular convolution
-        # Just verify the result is in a reasonable range
-        assert result.abs().max() < image.abs().max() * 10
+        # Identity kernel should approximately preserve the image
+        assert torch.allclose(result, image, rtol=1e-4, atol=1e-4)
 
     def test_kernel_smaller_than_image(self):
         """Test that kernel can be smaller than image."""
         image = torch.randn((20, 20))
         kernel = torch.randn((3, 3))
-        result = convolve_fft(image, kernel)
+        result = convolve(image, kernel)
         assert result.shape == image.shape
 
     def test_laplacian_kernel(self):
@@ -142,17 +141,16 @@ class TestConvolveFft:
         laplacian_kernel = torch.tensor(
             [[0.0, -1.0, 0.0], [-1.0, 4.0, -1.0], [0.0, -1.0, 0.0]]
         )
-        laplacian_kernel = torch.tensor(
-            [[0.0, -1.0, 0.0], [-1.0, 4.0, -1.0], [0.0, -1.0, 0.0]]
-        )
-        result = convolve_fft(image, laplacian_kernel)
+        result = convolve(image, laplacian_kernel)
         assert result.shape == image.shape
+        # Laplacian of constant image should be zero in the interior (not at edges)
+        assert torch.allclose(result[1:-1, 1:-1], torch.zeros(8, 8), atol=1e-5)
 
     def test_output_dtype(self):
         """Test that output preserves float dtype."""
         image = torch.randn((10, 10), dtype=torch.float32)
         kernel = torch.randn((3, 3), dtype=torch.float32)
-        result = convolve_fft(image, kernel)
+        result = convolve(image, kernel)
         assert result.dtype == torch.float32
 
 

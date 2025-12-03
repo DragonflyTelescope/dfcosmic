@@ -63,27 +63,28 @@ def block_replicate_torch(data, block_size, conserve_sum=True):
     return data
 
 
-def convolve_fft(image, kernel):
+def convolve(image, kernel):
     """
-    Applies 2D convolution while conserving the flux using a fast fourier transform
-
+    Applies 2D convolution using spatial domain (direct convolution)
     Args:
-        image: image or initial psf (torch.tensor)
-        kernel: kernel (torch.tensor)
-
+        image: image (torch.tensor) - 2D
+        kernel: kernel (torch.tensor) - 2D
     Returns:
         convolved image (torch.tensor)
     """
-    # Pad kernel to image size
-    padded_kernel = F.pad(
-        kernel,
-        (0, image.shape[1] - kernel.shape[1], 0, image.shape[0] - kernel.shape[0]),
-    )
+    # Add batch and channel dimensions: (H, W) -> (1, 1, H, W)
+    image_4d = image.unsqueeze(0).unsqueeze(0)
+    kernel_4d = kernel.unsqueeze(0).unsqueeze(0)
 
-    # Perform FFT convolution
-    fft_1 = torch.fft.rfft2(image)
-    fft_2 = torch.fft.rfft2(padded_kernel)
-    return torch.fft.irfft2(fft_1 * fft_2)
+    # Calculate padding to maintain image size (same as IRAF's behavior)
+    pad_h = kernel.shape[0] // 2
+    pad_w = kernel.shape[1] // 2
+
+    # Convolve using torch.nn.functional.conv2d
+    result = F.conv2d(image_4d, kernel_4d, padding=(pad_h, pad_w))
+
+    # Remove batch and channel dimensions: (1, 1, H, W) -> (H, W)
+    return result.squeeze(0).squeeze(0)
 
 
 def median_filter_torch(image, kernel_size=3):
