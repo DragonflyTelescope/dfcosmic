@@ -56,9 +56,9 @@ def lacosmic(
     """
     # Set image to Torch tensor if it's a NumPy array
     if isinstance(image, np.ndarray):
-        image = torch.from_numpy(image).to(device)
+        image = torch.from_numpy(image).float().to(device)
     else:
-        image = image.to(device)
+        image = image.float().to(device)
     # Define kernels
     block_size_tuple = (2, 2)
     block_size_tensor = torch.tensor(block_size_tuple, device=device)
