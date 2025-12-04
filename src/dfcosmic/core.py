@@ -82,7 +82,11 @@ def lacosmic(
             mad = sigma_clip_pytorch(abs_residuals, sigma=5, maxiters=10)[1]["median"]
             sig = 1.48 * mad
             del abs_residuals
-
+            if sig == 0:
+                raise ValueError(
+                    "Gain determination failed - provide estimate of gain manually. "
+                    f"Sky level: {sky_level:.2f}, Sigma: {sig:.2f}"
+                )
             gain = sky_level / (sig**2)
 
             # Sanity check (matching IRAF behavior)

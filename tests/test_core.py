@@ -62,7 +62,8 @@ class TestLacosmic:
         y = torch.linspace(100, 200, 50)
         xx, yy = torch.meshgrid(x, y, indexing="ij")
         image = xx + yy
-        _, mask = lacosmic(image, sigclip=5.0)
+        # Use manual gain to avoid approximation issues with smooth gradient
+        _, mask = lacosmic(image, sigclip=5.0, gain=1.0, readnoise=5.0)
         # Very few or no pixels should be masked in a smooth image
         assert mask.sum() < image.numel() * 0.1  # Less than 10% masked
 
@@ -118,16 +119,63 @@ class TestLacosmic:
         assert mask.shape == image.shape
 
     def test_zero_gain_readnoise(self):
-        """Test with zero gain and readnoise (default case)."""
-        image = torch.rand((50, 50)) * 1000
+        """Test with zero gain and readnoise (uses automatic gain approximation)."""
+        image = torch.rand((50, 50)) * 1000 + 500
         cleaned, mask = lacosmic(image, gain=0.0, readnoise=0.0)
+        assert cleaned.shape == image.shape
+        assert mask.shape == image.shape
+
+    def test_automatic_gain_approximation(self):
+        """Test that automatic gain approximation works when gain=0."""
+        # Create realistic image with sky background
+        image = torch.randn((100, 100)) * 10 + 1000
+        # Should not raise an error
+        cleaned, mask = lacosmic(image, gain=0.0, readnoise=0.0, niter=1)
+        assert cleaned.shape == image.shape
+        assert mask.shape == image.shape
+        assert not np.isnan(cleaned).any()
+        assert not np.isinf(cleaned).any()
+
+    def test_automatic_gain_with_cosmic_rays(self):
+        """Test automatic gain approximation with cosmic rays present."""
+        image = torch.randn((100, 100)) * 10 + 1000
+        # Add cosmic rays
+        image[25, 25] = 10000.0
+        image[50, 50] = 8000.0
+        cleaned, mask = lacosmic(image, gain=0.0, niter=2)
+        assert cleaned.shape == image.shape
+        assert mask.shape == image.shape
+        # Should detect some cosmic rays
+        assert mask.sum() > 0
+
+    def test_gain_approximation_failure(self):
+        """Test that gain approximation fails gracefully on invalid data."""
+        # Create uniform image which will have zero variance and cause gain calculation to fail
+        image = torch.ones((50, 50)) * 100.0
+        with pytest.raises(ValueError, match="Gain determination failed"):
+            lacosmic(image, gain=0.0, niter=1)
+
+    def test_gain_approximation_zero_sigma(self):
+        """Test that gain approximation catches zero sigma (sig==0) before division."""
+        # Create uniform image which will result in sig==0
+        image = torch.ones((50, 50)) * 100.0
+        # Should raise ValueError when sig==0 is detected
+        with pytest.raises(ValueError, match="Gain determination failed.*Sigma: 0.00"):
+            lacosmic(image, gain=0.0, niter=1)
+
+    def test_manual_gain_overrides_approximation(self):
+        """Test that manually specified gain is used instead of approximation."""
+        image = torch.rand((50, 50)) * 1000 + 500
+        # With manual gain, should work even if automatic would fail
+        cleaned, mask = lacosmic(image, gain=2.0, readnoise=5.0)
         assert cleaned.shape == image.shape
         assert mask.shape == image.shape
 
     def test_preserves_non_cr_pixels(self):
         """Test that non-cosmic-ray pixels are relatively preserved."""
         image = torch.ones((50, 50)) * 1000.0
-        cleaned, _ = lacosmic(image)
+        # Use manual gain to avoid division by zero with uniform image
+        cleaned, _ = lacosmic(image, gain=1.0, readnoise=5.0)
         # Most pixels should remain close to original
         diff = np.abs(cleaned - image.cpu().numpy())
         assert np.median(diff) < 100  # Median change should be small
@@ -177,7 +225,8 @@ class TestLacosmicEdgeCases:
     def test_uniform_image(self):
         """Test with perfectly uniform image."""
         image = torch.ones((50, 50)) * 1000.0
-        cleaned, mask = lacosmic(image)
+        # Use manual gain to avoid division by zero with uniform image
+        cleaned, mask = lacosmic(image, gain=1.0, readnoise=5.0)
         assert cleaned.shape == image.shape
         # Uniform image should have minimal masking
         assert mask.sum() < image.numel() * 0.05

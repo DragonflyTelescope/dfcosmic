@@ -8,6 +8,7 @@ from dfcosmic.utils import (
     convolve,
     dilation_pytorch,
     median_filter_torch,
+    sigma_clip_pytorch,
 )
 
 
@@ -238,3 +239,103 @@ class TestDilationPytorch:
         result = dilation_pytorch(image, strel)
         assert result.shape == image.shape
         assert result.max() >= 1.0
+
+
+class TestSigmaClipPytorch:
+    """Tests for sigma_clip_pytorch function."""
+
+    def test_basic_sigma_clipping(self):
+        """Test basic sigma clipping operation."""
+        data = torch.randn(100) * 10 + 100
+        clipped_data, stats = sigma_clip_pytorch(data, sigma=3.0, maxiters=5)
+        assert isinstance(clipped_data, torch.Tensor)
+        assert isinstance(stats, dict)
+        assert "median" in stats
+        assert "mean" in stats
+        assert "std" in stats
+        assert "niter" in stats
+        assert "npix" in stats
+
+    def test_removes_outliers(self):
+        """Test that sigma clipping removes outliers."""
+        data = torch.randn(100) * 10 + 100
+        # Add some extreme outliers
+        data = torch.cat([data, torch.tensor([1000.0, 2000.0, -1000.0])])
+        clipped_data, stats = sigma_clip_pytorch(data, sigma=3.0, maxiters=10)
+        # Clipped data should have fewer pixels
+        assert len(clipped_data) < len(data)
+        # Stats should be reasonable (not affected by outliers)
+        assert 80 < stats["median"] < 120
+        assert 80 < stats["mean"] < 120
+
+    def test_scalar_sigma(self):
+        """Test with scalar sigma (symmetric clipping)."""
+        data = torch.randn(100) * 10 + 100
+        clipped_data, stats = sigma_clip_pytorch(data, sigma=3.0, maxiters=5)
+        assert len(clipped_data) <= len(data)
+        assert stats["niter"] <= 5
+
+    def test_tuple_sigma(self):
+        """Test with tuple sigma (asymmetric clipping)."""
+        data = torch.randn(100) * 10 + 100
+        clipped_data, stats = sigma_clip_pytorch(data, sigma=(2.0, 3.0), maxiters=5)
+        assert len(clipped_data) <= len(data)
+        assert stats["niter"] <= 5
+
+    def test_convergence(self):
+        """Test that sigma clipping converges."""
+        data = torch.randn(100) * 10 + 100
+        clipped_data, stats = sigma_clip_pytorch(data, sigma=3.0, maxiters=10)
+        # Should converge before max iterations on normal data
+        assert stats["niter"] <= 10
+
+    def test_no_clipping_needed(self):
+        """Test with data that doesn't need clipping."""
+        data = torch.ones(100) * 100.0
+        clipped_data, stats = sigma_clip_pytorch(data, sigma=3.0, maxiters=10)
+        assert len(clipped_data) == len(data)
+        assert stats["median"] == 100.0
+        assert stats["mean"] == 100.0
+        assert stats["std"] == 0.0
+
+    def test_stats_dict_contents(self):
+        """Test that stats dictionary contains correct keys and types."""
+        data = torch.randn(100) * 10 + 100
+        _, stats = sigma_clip_pytorch(data, sigma=3.0, maxiters=5)
+        assert isinstance(stats["median"], float)
+        assert isinstance(stats["mean"], float)
+        assert isinstance(stats["std"], float)
+        assert isinstance(stats["niter"], int)
+        assert isinstance(stats["npix"], int)
+        assert stats["npix"] > 0
+        assert stats["niter"] >= 1
+
+    def test_preserves_data_distribution(self):
+        """Test that clipping preserves central data distribution."""
+        data = torch.randn(1000) * 10 + 100
+        clipped_data, stats = sigma_clip_pytorch(data, sigma=3.0, maxiters=10)
+        # Most data should remain (only extreme outliers removed)
+        assert len(clipped_data) > len(data) * 0.9
+        # Stats should be close to true parameters
+        assert 95 < stats["mean"] < 105
+        assert 8 < stats["std"] < 12
+
+    def test_maxiters_limit(self):
+        """Test that maxiters limits number of iterations."""
+        data = torch.randn(100) * 10 + 100
+        _, stats = sigma_clip_pytorch(data, sigma=0.5, maxiters=3)
+        assert stats["niter"] <= 3
+
+    def test_2d_input_flattened(self):
+        """Test that 2D input is properly flattened."""
+        data = torch.randn(10, 10) * 10 + 100
+        clipped_data, stats = sigma_clip_pytorch(data, sigma=3.0, maxiters=5)
+        assert clipped_data.ndim == 1
+        assert stats["npix"] <= 100
+
+    def test_does_not_modify_original(self):
+        """Test that original data is not modified."""
+        data = torch.randn(100) * 10 + 100
+        data_original = data.clone()
+        sigma_clip_pytorch(data, sigma=3.0, maxiters=5)
+        assert torch.equal(data, data_original)
