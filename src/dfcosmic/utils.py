@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.nn.functional as F
 
@@ -149,3 +150,53 @@ def dilation_pytorch(
     result, _ = sums.max(dim=1)
     # Reshape the image to recover initial shape
     return torch.reshape(result, image.shape)
+
+
+def sigma_clip_pytorch(
+    data: torch.Tensor, sigma: tuple[float, float] | float = 3.0, maxiters: int = 10
+) -> tuple[torch.Tensor, dict]:
+    """
+    Compute iterative sigma clipping (mimics IRAF iterstat)
+
+    Returns
+    -------
+    clipped_data : torch.Tensor
+        Data with outliers removed
+    stats : dict
+        Dictionary with 'median', 'mean', 'std', 'niter'
+    """
+    if isinstance(sigma, (int, float)):
+        sigma_low, sigma_high = sigma, sigma
+    else:
+        sigma_low, sigma_high = sigma
+
+    data = data.flatten().clone()  # Don't modify original
+
+    for i in range(maxiters):
+        median_val = torch.median(data)
+        mean_val = torch.mean(data)
+        std_val = torch.std(data, unbiased=True)  # Use unbiased estimator
+
+        # Define bounds
+        lower = mean_val - sigma_low * std_val
+        upper = mean_val + sigma_high * std_val
+
+        # Keep good pixels
+        mask = (data >= lower) & (data <= upper)
+        data_new = data[mask]
+
+        # Check convergence
+        if len(data_new) == len(data):
+            break  # No pixels clipped
+
+        data = data_new
+
+    stats = {
+        "median": torch.median(data).item(),
+        "mean": torch.mean(data).item(),
+        "std": torch.std(data, unbiased=True).item(),
+        "niter": i + 1,
+        "npix": len(data),
+    }
+
+    return data, stats

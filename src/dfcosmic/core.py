@@ -7,6 +7,7 @@ from dfcosmic.utils import (
     convolve,
     dilation_pytorch,
     median_filter_torch,
+    sigma_clip_pytorch,
 )
 
 
@@ -49,7 +50,7 @@ def lacosmic(
 
     Notes
     -----
-    If gain and readnoise are set to zero, then ...
+    If the gain is set to zero (or not provided), then we compute it assuming sky-dominated noise and poisson statistics.
     """
     # Set image to Torch tensor if it's a NumPy array
     if isinstance(image, np.ndarray):
@@ -68,6 +69,28 @@ def lacosmic(
     del image  # Free up memory
     final_crmask = torch.zeros(clean_image.shape, dtype=bool, device=device)
     for iteration in range(niter):
+        # Step 0: If gain is not set then approximate it
+        if gain <= 0:
+            sky_level = sigma_clip_pytorch(clean_image, sigma=5, maxiters=10)[1][
+                "median"
+            ]
+            med7 = median_filter_torch(clean_image, kernel_size=7)
+            residuals = clean_image - med7
+            del med7
+            abs_residuals = torch.abs(residuals)
+            del residuals
+            mad = sigma_clip_pytorch(abs_residuals, sigma=5, maxiters=10)[1]["median"]
+            sig = 1.48 * mad
+            del abs_residuals
+
+            gain = sky_level / (sig**2)
+
+            # Sanity check (matching IRAF behavior)
+            if gain <= 0:
+                raise ValueError(
+                    "Gain determination failed - provide estimate of gain manually. "
+                    f"Sky level: {sky_level:.2f}, Sigma: {sig:.2f}"
+                )
         # Step 1: Laplacian detection
         # Reuse variable name 'temp' for intermediate calculations
         temp = block_replicate_torch(clean_image, block_size_tensor)
