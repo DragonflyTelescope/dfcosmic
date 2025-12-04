@@ -63,7 +63,7 @@ If you are unsure of either the gain or the readnoise you can leave them blank o
 ## Timing Comparisons
 We compare our pytorch implementation running on either a CPU or GPU with two popular cosmic ray removal codes: [lacosmic](https://github.com/larrybradley/lacosmic) and [astroscrappy](https://github.com/larrybradley/lacosmic). 
 
-In order to run this timing comparison, we use the synthetic data described (and created) in the [astroscrappy testing suite](https://github.com/astropy/astroscrappy/blob/main/astroscrappy/tests/fake_data.py). The full notebook can be found in `Comparison Demo <./demos/Comparison.ipynb>`_.
+In order to run this timing comparison, we use the synthetic data described (and created) in the [astroscrappy testing suite](https://github.com/astropy/astroscrappy/blob/main/astroscrappy/tests/fake_data.py). The full notebook can be found in [demos/Comparison.ipynb](./demos/Comparison.ipynb).
 
 The runtimes for the four options are as follows:
 
