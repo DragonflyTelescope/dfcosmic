@@ -1,9 +1,7 @@
 # dfcosmic
 
 [![Tests](https://github.com/DragonflyTelescope/dfcosmic/actions/workflows/test.yml/badge.svg)](https://github.com/DragonflyTelescope/dfcosmic/actions/workflows/test.yml)
-
-A high-performance Python package for cosmic ray removal strictly following the procedure outlined in [van Dokkum 2001](https://ui.adsabs.harvard.edu/abs/2001PASP..113.1420V/abstract). Although several other cosmic ray removal codes exist, there procedures differ slightly from that described in van Dokkum 2001. In this package, we use [PyTorch](https://pytorch.org/) to achieve considerable speedup over the original implementation while retaining fidelity to the algorithmic choices presented in the original paper.
-
+A high-performance Python package for cosmic ray removal strictly following the procedure outlined in [van Dokkum 2001](https://ui.adsabs.harvard.edu/abs/2001PASP..113.1420V/abstract). Although several other implementations exist, their procedures differ slightly from that described in van Dokkum 2001. In this package, we use [PyTorch](https://pytorch.org/) to achieve considerable speedup over the original implementation while retaining fidelity to the algorithmic choices presented in the original paper.
 
 ## Installation
 
@@ -30,7 +28,6 @@ For development installation with documentation dependencies:
 ```bash
 pip install -e ".[docs]"
 ```
-
 
 ## Basic Usage
 We follow the same parameter naming conventions presented in the original IRAF code.
@@ -61,7 +58,7 @@ If you are unsure of either the gain or the readnoise you can leave them blank o
 ![Example](demos/example.png)
 
 ## Timing Comparisons
-We compare our pytorch implementation running on either a CPU or GPU with two popular cosmic ray removal codes: [lacosmic](https://github.com/larrybradley/lacosmic) and [astroscrappy](https://github.com/larrybradley/lacosmic). 
+We compare our pytorch implementation running on either a CPU or GPU with two popular cosmic ray removal codes: [lacosmic](https://github.com/larrybradley/lacosmic) and [astroscrappy](https://github.com/larrybradley/lacosmic).
 
 In order to run this timing comparison, we use the synthetic data described (and created) in the [astroscrappy testing suite](https://github.com/astropy/astroscrappy/blob/main/astroscrappy/tests/fake_data.py). The full notebook can be found in [demos/Comparison.ipynb](./demos/Comparison.ipynb).
 
