@@ -24,6 +24,8 @@ def lacosmic(
     """
     Remove cosmic rays from an image using the LA Cosmic algorithm by Pieter van Dokkum.
 
+    The paper can be found at the following URL https://ui.adsabs.harvard.edu/abs/2001PASP..113.1420V/abstract
+
     Parameters
     ----------
     image : torch.Tensor|np.ndarray
