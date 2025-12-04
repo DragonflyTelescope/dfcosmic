@@ -46,7 +46,7 @@ class TestLacosmic:
         image[25, 25] = 10000.0
         image[25, 26] = 8000.0
         image[24, 25] = 8000.0
-        original_max = float(image.max().item())
+        float(image.max().item())
         cleaned, mask = lacosmic(image, sigclip=4.5, niter=2)
         # Test that function completes and returns expected shapes
         assert cleaned.shape == (50, 50)

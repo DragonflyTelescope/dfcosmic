@@ -1,4 +1,3 @@
-import numpy as np
 import torch
 import torch.nn.functional as F
 
@@ -173,7 +172,7 @@ def sigma_clip_pytorch(
     data = data.flatten().clone()  # Don't modify original
 
     for i in range(maxiters):
-        median_val = torch.median(data)
+        torch.median(data)
         mean_val = torch.mean(data)
         std_val = torch.std(data, unbiased=True)  # Use unbiased estimator
 
