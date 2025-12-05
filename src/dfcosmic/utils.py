@@ -24,7 +24,7 @@ def _process_block_inputs(
             "length as the number of data dimensions"
         )
 
-    block_size_int = torch.tensor(block_size, dtype=torch.int)
+    block_size_int = block_size.detach().clone()
     if torch.any(block_size_int != block_size):  # e.g., 2.0 is OK, 2.1 is not
         raise ValueError("block_size elements must be integers")
 
