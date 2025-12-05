@@ -1,5 +1,7 @@
+import numpy as np
 import torch
 import torch.nn.functional as F
+from scipy.ndimage import zoom
 
 
 def _process_block_inputs(
@@ -65,6 +67,16 @@ def block_replicate_torch(
         data = data / torch.prod(block_size)
 
     return data
+
+
+def block_replicate_scipy(
+    data: np.ndarray, block_size: tuple[int, int], conserve_sum: bool = True
+):
+    out = zoom(data, zoom=block_size, order=0)  # order=0 → nearest neighbor
+
+    if conserve_sum:
+        out = out / np.prod(block_size)
+    return out
 
 
 def convolve(image: torch.Tensor, kernel: torch.Tensor) -> torch.Tensor:
@@ -199,3 +211,14 @@ def sigma_clip_pytorch(
     }
 
     return data, stats
+
+
+def avg_pool2d_numpy_fast(temp, block_size):
+    bh, bw = block_size
+    H, W = temp.shape
+
+    Ht = (H // bh) * bh
+    Wt = (W // bw) * bw
+    temp = temp[:Ht, :Wt]
+
+    return temp.reshape(Ht // bh, bh, Wt // bw, bw).mean(axis=(1, 3))
