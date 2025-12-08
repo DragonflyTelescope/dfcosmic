@@ -1,189 +1,101 @@
 
-@article{beroiz_astroalign_2020,
-	title = {Astroalign: {A} {Python} module for astronomical image registration},
-	volume = {32},
-	issn = {2213-1337},
-	shorttitle = {Astroalign},
-	url = {https://www.sciencedirect.com/science/article/pii/S221313372030038X},
-	doi = {10.1016/j.ascom.2020.100384},
-	abstract = {We present an algorithm implemented in the Astroalign Python module for image registration in astronomy. Our module does not rely on WCS information and instead matches three-point asterisms (triangles) on the images to find the most accurate linear transformation between them. It is especially useful in the context of aligning images prior to stacking or performing difference image analysis. Astroalign can match images of different point-spread functions, seeing, and atmospheric conditions.},
-	urldate = {2025-03-12},
-	journal = {Astronomy and Computing},
-	author = {Beroiz, M. and Cabral, J. B. and Sanchez, B.},
-	month = jul,
-	year = {2020},
-	keywords = {Astronomy, Image registration, Python package},
-	pages = {100384},
-	file = {ScienceDirect Snapshot:/home/carterrhea/Zotero/storage/6I2VAN67/S221313372030038X.html:text/html;Submitted Version:/home/carterrhea/Zotero/storage/H6EZX42B/Beroiz et al. - 2020 - Astroalign A Python module for astronomical image registration.pdf:application/pdf},
+@article{van_dokkum_cosmic-ray_2001,
+	title = {Cosmic-Ray Rejection by Laplacian Edge Detection},
+	volume = {113},
+	issn = {0004-6280},
+	url = {https://ui.adsabs.harvard.edu/abs/2001PASP..113.1420V},
+	doi = {10.1086/323894},
+	abstract = {Conventional algorithms for rejecting cosmic rays in single {CCD} exposures rely on the contrast between cosmic rays and their surroundings and may produce erroneous results if the point-spread function is smaller than the largest cosmic rays. This paper describes a robust algorithm for cosmic-ray rejection, based on a variation of Laplacian edge detection. The algorithm identifies cosmic rays of arbitrary shapes and sizes by the sharpness of their edges and reliably discriminates between poorly sampled point sources and cosmic rays. Examples of its performance are given for spectroscopic and imaging data, including Hubble Space Telescope Wide Field Planetary Camera 2 images.},
+	pages = {1420--1427},
+	journaltitle = {Publications of the Astronomical Society of the Pacific},
+	author = {van Dokkum, Pieter G.},
+	urldate = {2025-12-08},
+	date = {2001-11-01},
+	note = {Publisher: {IOP}
+{ADS} Bibcode: 2001PASP..113.1420V},
+	keywords = {Astrophysics, Instrumentation: Detectors, Methods: Data Analysis-techniques: image processing},
+	file = {Full Text PDF:/home/carterrhea/Zotero/storage/FEBJWVGY/van Dokkum - 2001 - Cosmic-Ray Rejection by Laplacian Edge Detection.pdf:application/pdf},
 }
 
-@article{robitaille_reproject_2020,
-	title = {{reproject}: {Python}-based astronomical image reprojection},
-	shorttitle = {reproject},
-	url = {https://ui.adsabs.harvard.edu/abs/2020ascl.soft11023R},
-	abstract = {reproject implements image reprojection (resampling) methods for astronomical images using various techniques via a uniform interface. Reprojection re-grids images from one world coordinate system to another (for example changing the pixel resolution, orientation, coordinate system). reproject works on celestial images by interpolation, as well as by finding the exact overlap between pixels on the celestial sphere. It can also reproject to/from HEALPIX projections by relying on the astropy-healpix package.},
-	urldate = {2025-03-12},
-	journal = {Astrophysics Source Code Library},
-	author = {Robitaille, Thomas and Deil, Christoph and Ginsburg, Adam},
-	month = nov,
-	year = {2020},
-	note = {ADS Bibcode: 2020ascl.soft11023R},
-	keywords = {Software},
-	pages = {ascl:2011.023},
+@software{bradley_larrybradleylacosmic_2025,
+	title = {larrybradley/lacosmic: 1.3.0},
+	url = {https://zenodo.org/records/15831925},
+	shorttitle = {larrybradley/lacosmic},
+	abstract = {See the changelog for release notes.},
+	publisher = {Zenodo},
+	author = {Bradley, Larry},
+	urldate = {2025-12-08},
+	date = {2025-07-07},
+	doi = {10.5281/zenodo.15831925},
+	file = {Snapshot:/home/carterrhea/Zotero/storage/ZL3JT4RP/15831925.html:text/html},
 }
 
-@article{astropy_collaboration_astropy_2013,
-	title = {Astropy: {A} community {Python} package for astronomy},
-	volume = {558},
-	issn = {0004-6361},
-	shorttitle = {Astropy},
-	url = {https://ui.adsabs.harvard.edu/abs/2013A&A...558A..33A},
-	doi = {10.1051/0004-6361/201322068},
-	abstract = {We present the first public version (v0.2) of the open-source and community-developed Python package, Astropy. This package provides core astronomy-related functionality to the community, including support for domain-specific file formats such as flexible image transport system (FITS) files, Virtual Observatory (VO) tables, and common ASCII table formats, unit and physical quantity conversions, physical constants specific to astronomy, celestial coordinate and time transformations, world coordinate system (WCS) support, generalized containers for representing gridded as well as tabular data, and a framework for cosmological transformations and conversions. Significant functionality is under activedevelopment, such as a model fitting framework, VO client and server tools, and aperture and point spread function (PSF) photometry tools. The core development team is actively making additions and enhancements to the current code base, and we encourage anyone interested to participate in the development of future Astropy versions.},
-	urldate = {2025-03-12},
-	journal = {Astronomy and Astrophysics},
-	author = {{Astropy Collaboration} and Robitaille, Thomas P. and Tollerud, Erik J. and Greenfield, Perry and Droettboom, Michael and Bray, Erik and Aldcroft, Tom and Davis, Matt and Ginsburg, Adam and Price-Whelan, Adrian M. and Kerzendorf, Wolfgang E. and Conley, Alexander and Crighton, Neil and Barbary, Kyle and Muna, Demitri and Ferguson, Henry and Grollier, Frédéric and Parikh, Madhura M. and Nair, Prasanth H. and Unther, Hans M. and Deil, Christoph and Woillez, Julien and Conseil, Simon and Kramer, Roban and Turner, James E. H. and Singer, Leo and Fox, Ryan and Weaver, Benjamin A. and Zabalza, Victor and Edwards, Zachary I. and Azalee Bostroem, K. and Burke, D. J. and Casey, Andrew R. and Crawford, Steven M. and Dencheva, Nadia and Ely, Justin and Jenness, Tim and Labrie, Kathleen and Lim, Pey Lian and Pierfederici, Francesco and Pontzen, Andrew and Ptak, Andy and Refsdal, Brian and Servillat, Mathieu and Streicher, Ole},
-	month = oct,
-	year = {2013},
-	note = {ADS Bibcode: 2013A\&A...558A..33A},
-	keywords = {Astrophysics - Instrumentation and Methods for Astrophysics, methods: data analysis, methods: miscellaneous, virtual observatory tools},
-	pages = {A33},
-	file = {Full Text PDF:/home/carterrhea/Zotero/storage/F3SJ7LYY/Astropy Collaboration et al. - 2013 - Astropy A community Python package for astronomy.pdf:application/pdf},
-}
+@software{robitaille_astropyastroscrappy_2025,
+	title = {astropy/astroscrappy: v1.3.0},
+	url = {https://zenodo.org/records/17495347},
+	shorttitle = {astropy/astroscrappy},
+	abstract = {What's Changed
 
-@article{astropy_collaboration_astropy_2018,
-	title = {The {Astropy} {Project}: Building an Open-science Project and Status of the v2.0 Core Package},
-	volume = {156},
-	issn = {0004-6256},
-	shorttitle = {The {Astropy} {Project}},
-	url = {https://ui.adsabs.harvard.edu/abs/2018AJ....156..123A},
-	doi = {10.3847/1538-3881/aabc4f},
-	abstract = {The Astropy Project supports and fosters the development of open-source and openly developed Python packages that provide commonly needed functionality to the astronomical community. A key element of the Astropy Project is the core package astropy, which serves as the foundation for more specialized projects and packages. In this article, we provide an overview of the organization of the Astropy project and summarize key features in the core package, as of the recent major release, version 2.0. We then describe the project infrastructure designed to facilitate and support development for a broader ecosystem of interoperable packages. We conclude with a future outlook of planned new features and directions for the broader Astropy Project. .},
-	urldate = {2025-03-12},
-	journal = {The Astronomical Journal},
-	author = {{Astropy Collaboration} and Price-Whelan, A. M. and Sipőcz, B. M. and Günther, H. M. and Lim, P. L. and Crawford, S. M. and Conseil, S. and Shupe, D. L. and Craig, M. W. and Dencheva, N. and Ginsburg, A. and VanderPlas, J. T. and Bradley, L. D. and Pérez-Suárez, D. and de Val-Borro, M. and Aldcroft, T. L. and Cruz, K. L. and Robitaille, T. P. and Tollerud, E. J. and Ardelean, C. and Babej, T. and Bach, Y. P. and Bachetti, M. and Bakanov, A. V. and Bamford, S. P. and Barentsen, G. and Barmby, P. and Baumbach, A. and Berry, K. L. and Biscani, F. and Boquien, M. and Bostroem, K. A. and Bouma, L. G. and Brammer, G. B. and Bray, E. M. and Breytenbach, H. and Buddelmeijer, H. and Burke, D. J. and Calderone, G. and Cano Rodríguez, J. L. and Cara, M. and Cardoso, J. V. M. and Cheedella, S. and Copin, Y. and Corrales, L. and Crichton, D. and D'Avella, D. and Deil, C. and Depagne, É. and Dietrich, J. P. and Donath, A. and Droettboom, M. and Earl, N. and Erben, T. and Fabbro, S. and Ferreira, L. A. and Finethy, T. and Fox, R. T. and Garrison, L. H. and Gibbons, S. L. J. and Goldstein, D. A. and Gommers, R. and Greco, J. P. and Greenfield, P. and Groener, A. M. and Grollier, F. and Hagen, A. and Hirst, P. and Homeier, D. and Horton, A. J. and Hosseinzadeh, G. and Hu, L. and Hunkeler, J. S. and Ivezić, Ž. and Jain, A. and Jenness, T. and Kanarek, G. and Kendrew, S. and Kern, N. S. and Kerzendorf, W. E. and Khvalko, A. and King, J. and Kirkby, D. and Kulkarni, A. M. and Kumar, A. and Lee, A. and Lenz, D. and Littlefair, S. P. and Ma, Z. and Macleod, D. M. and Mastropietro, M. and McCully, C. and Montagnac, S. and Morris, B. M. and Mueller, M. and Mumford, S. J. and Muna, D. and Murphy, N. A. and Nelson, S. and Nguyen, G. H. and Ninan, J. P. and Nöthe, M. and Ogaz, S. and Oh, S. and Parejko, J. K. and Parley, N. and Pascual, S. and Patil, R. and Patil, A. A. and Plunkett, A. L. and Prochaska, J. X. and Rastogi, T. and Reddy Janga, V. and Sabater, J. and Sakurikar, P. and Seifert, M. and Sherbert, L. E. and Sherwood-Taylor, H. and Shih, A. Y. and Sick, J. and Silbiger, M. T. and Singanamalla, S. and Singer, L. P. and Sladen, P. H. and Sooley, K. A. and Sornarajah, S. and Streicher, O. and Teuben, P. and Thomas, S. W. and Tremblay, G. R. and Turner, J. E. H. and Terrón, V. and van Kerkwijk, M. H. and de la Vega, A. and Watkins, L. L. and Weaver, B. A. and Whitmore, J. B. and Woillez, J. and Zabalza, V. and {Astropy Contributors}},
-	month = sep,
-	year = {2018},
-	note = {Publisher: IOP
-ADS Bibcode: 2018AJ....156..123A},
-	keywords = {Astrophysics - Instrumentation and Methods for Astrophysics, methods: data analysis, methods: statistical, methods: miscellaneous, reference systems},
-	pages = {123},
-	file = {Full Text PDF:/home/carterrhea/Zotero/storage/ID7V2B9G/Astropy Collaboration et al. - 2018 - The Astropy Project Building an Open-science Project and Status of the v2.0 Core Package.pdf:application/pdf},
-}
 
-@article{astropy_collaboration_astropy_2022,
-	title = {The {Astropy} {Project}: Sustaining and Growing a Community-oriented Open-source Project and the Latest Major Release (v5.0) of the Core Package},
-	volume = {935},
-	issn = {0004-637X},
-	shorttitle = {The {Astropy} {Project}},
-	url = {https://ui.adsabs.harvard.edu/abs/2022ApJ...935..167A},
-	doi = {10.3847/1538-4357/ac7c74},
-	abstract = {The Astropy Project supports and fosters the development of open-source and openly developed Python packages that provide commonly needed functionality to the astronomical community. A key element of the Astropy Project is the core package astropy, which serves as the foundation for more specialized projects and packages. In this article, we summarize key features in the core package as of the recent major release, version 5.0, and provide major updates on the Project. We then discuss supporting a broader ecosystem of interoperable packages, including connections with several astronomical observatories and missions. We also revisit the future outlook of the Astropy Project and the current status of Learn Astropy. We conclude by raising and discussing the current and future challenges facing the Project.},
-	urldate = {2025-03-12},
-	journal = {The Astrophysical Journal},
-	author = {{Astropy Collaboration} and Price-Whelan, Adrian M. and Lim, Pey Lian and Earl, Nicholas and Starkman, Nathaniel and Bradley, Larry and Shupe, David L. and Patil, Aarya A. and Corrales, Lia and Brasseur, C. E. and Nöthe, Maximilian and Donath, Axel and Tollerud, Erik and Morris, Brett M. and Ginsburg, Adam and Vaher, Eero and Weaver, Benjamin A. and Tocknell, James and Jamieson, William and van Kerkwijk, Marten H. and Robitaille, Thomas P. and Merry, Bruce and Bachetti, Matteo and Günther, H. Moritz and Aldcroft, Thomas L. and Alvarado-Montes, Jaime A. and Archibald, Anne M. and Bódi, Attila and Bapat, Shreyas and Barentsen, Geert and Bazán, Juanjo and Biswas, Manish and Boquien, Médéric and Burke, D. J. and Cara, Daria and Cara, Mihai and Conroy, Kyle E. and Conseil, Simon and Craig, Matthew W. and Cross, Robert M. and Cruz, Kelle L. and D'Eugenio, Francesco and Dencheva, Nadia and Devillepoix, Hadrien A. R. and Dietrich, Jörg P. and Eigenbrot, Arthur Davis and Erben, Thomas and Ferreira, Leonardo and Foreman-Mackey, Daniel and Fox, Ryan and Freij, Nabil and Garg, Suyog and Geda, Robel and Glattly, Lauren and Gondhalekar, Yash and Gordon, Karl D. and Grant, David and Greenfield, Perry and Groener, Austen M. and Guest, Steve and Gurovich, Sebastian and Handberg, Rasmus and Hart, Akeem and Hatfield-Dodds, Zac and Homeier, Derek and Hosseinzadeh, Griffin and Jenness, Tim and Jones, Craig K. and Joseph, Prajwel and Kalmbach, J. Bryce and Karamehmetoglu, Emir and Kałuszyński, Mikołaj and Kelley, Michael S. P. and Kern, Nicholas and Kerzendorf, Wolfgang E. and Koch, Eric W. and Kulumani, Shankar and Lee, Antony and Ly, Chun and Ma, Zhiyuan and MacBride, Conor and Maljaars, Jakob M. and Muna, Demitri and Murphy, N. A. and Norman, Henrik and O'Steen, Richard and Oman, Kyle A. and Pacifici, Camilla and Pascual, Sergio and Pascual-Granado, J. and Patil, Rohit R. and Perren, Gabriel I. and Pickering, Timothy E. and Rastogi, Tanuj and Roulston, Benjamin R. and Ryan, Daniel F. and Rykoff, Eli S. and Sabater, Jose and Sakurikar, Parikshit and Salgado, Jesús and Sanghi, Aniket and Saunders, Nicholas and Savchenko, Volodymyr and Schwardt, Ludwig and Seifert-Eckert, Michael and Shih, Albert Y. and Jain, Anany Shrey and Shukla, Gyanendra and Sick, Jonathan and Simpson, Chris and Singanamalla, Sudheesh and Singer, Leo P. and Singhal, Jaladh and Sinha, Manodeep and Sipőcz, Brigitta M. and Spitler, Lee R. and Stansby, David and Streicher, Ole and Šumak, Jani and Swinbank, John D. and Taranu, Dan S. and Tewary, Nikita and Tremblay, Grant R. and de Val-Borro, Miguel and Van Kooten, Samuel J. and Vasović, Zlatan and Verma, Shresth and de Miranda Cardoso, José Vinícius and Williams, Peter K. G. and Wilson, Tom J. and Winkel, Benjamin and Wood-Vasey, W. M. and Xue, Rui and Yoachim, Peter and Zhang, Chen and Zonca, Andrea and {Astropy Project Contributors}},
-	month = aug,
-	year = {2022},
-	note = {Publisher: IOP
-ADS Bibcode: 2022ApJ...935..167A},
-	keywords = {Astrophysics - Instrumentation and Methods for Astrophysics, 1855, 1866, Astronomy software, Open source software, 1858, Astronomy data analysis},
-	pages = {167},
-	file = {Full Text PDF:/home/carterrhea/Zotero/storage/YMCUMS7E/Astropy Collaboration et al. - 2022 - The Astropy Project Sustaining and Growing a Community-oriented Open-source Project and the Latest.pdf:application/pdf},
-}
 
-@article{greisen_representations_2002,
-	title = {Representations of world coordinates in {FITS}},
-	volume = {395},
-	issn = {0004-6361},
-	url = {https://ui.adsabs.harvard.edu/abs/2002A&A...395.1061G},
-	doi = {10.1051/0004-6361:20021326},
-	abstract = {The initial descriptions of the FITS format provided a simplified method for describing the physical coordinate values of the image pixels, but deliberately did not specify any of the detailed conventions required to convey the complexities of actual image coordinates. Building on conventions in wide use within astronomy, this paper proposes general extensions to the original methods for describing the world coordinates of FITS data. In subsequent papers, we apply these general conventions to the methods by which spherical coordinates may be projected onto a two-dimensional plane and to frequency/wavelength/velocity coordinates.},
-	urldate = {2025-03-12},
-	journal = {Astronomy and Astrophysics},
-	author = {Greisen, E. W. and Calabretta, M. R.},
-	month = dec,
-	year = {2002},
-	note = {Publisher: EDP
-ADS Bibcode: 2002A\&A...395.1061G},
-	keywords = {Astrophysics, methods: data analysis, astronomical data bases: miscellaneous, techniques: image processing},
-	pages = {1061--1075},
-	file = {Full Text PDF:/home/carterrhea/Zotero/storage/FJP8K5R9/Greisen and Calabretta - 2002 - Representations of world coordinates in FITS.pdf:application/pdf},
-}
+{MNT}: Use hash for Action workflow versions and update if needed by @pllim in https://github.com/astropy/astroscrappy/pull/88
 
-@article{calabretta_representations_2002,
-	title = {Representations of celestial coordinates in {FITS}},
-	volume = {395},
-	copyright = {© ESO, 2002},
-	issn = {0004-6361, 1432-0746},
-	url = {https://www.aanda.org/articles/aa/abs/2002/45/aah3860/aah3860.html},
-	doi = {10.1051/0004-6361:20021327},
-	abstract = {In Paper I, Greisen \& Calabretta ([CITE]) describe a generalized method for assigning physical coordinates to FITS image pixels. This paper implements this method for all spherical map projections likely to be of interest in astronomy. The new methods encompass existing informal FITS spherical coordinate conventions and translations from them are described. Detailed examples of header interpretation and construction are given.},
-	language = {en},
-	number = {3},
-	urldate = {2025-03-12},
-	journal = {Astronomy and Astrophysics},
-	author = {Calabretta, M. R. and Greisen, E. W.},
-	month = dec,
-	year = {2002},
-	note = {Number: 3
-Publisher: EDP Sciences},
-	pages = {1077--1122},
-	file = {Full Text PDF:/home/carterrhea/Zotero/storage/MZJ2AHYR/Calabretta and Greisen - 2002 - Representations of celestial coordinates in FITS.pdf:application/pdf},
-}
+{MNT}: Create dependabot.yml for workflow auto updates by @pllim in https://github.com/astropy/astroscrappy/pull/89
 
-@inproceedings{shupe_sip_2005,
-	title = {The {SIP} Convention for Representing Distortion in {FITS} Image Headers},
-        booktitle = "{Astronomical Data Analysis Software and Systems XIV}",
-        editor = {{Shopbell}, P. and {Britton}, M. and {Ebert}, R.},
-        series = {Astronomical Society of the Pacific Conference Series},
-        volume = {347},
-	url = {https://ui.adsabs.harvard.edu/abs/2005ASPC..347..491S},
-	abstract = {The SIP ("Simple Imaging Polynomial") convention provides a convenient means for representing non-linear geometric distortion as polynomials in FITS header keywords. This scheme has been incorporated by the Spitzer Science Center (SSC) into its imaging products, and it is under consideration for wider use. The SIP keywords are read and applied by the SSC's MOPEX mosaicking software, and by several standard analysis tools, including WCSTools, SAOImage, DS9, GAIA/Starlink AST, IDL ASTROLIB, and Drizzle. We provide definitions of how these keywords are used together with standard FITS World Coordinate System (WCS) keywords to relate pixel coordinates to the sky. Some examples illustrate the application of this scheme to actual distorted data.},
-	urldate = {2025-03-12},
-	author = {Shupe, D. L. and Moshir, Mehdrdad and Li, J. and Makovoz, D. and Narron, R. and Hook, R. N.},
-	month = dec,
-	year = {2005},
-	note = {Conference Name: Astronomical Data Analysis Software and Systems XIV
-ADS Bibcode: 2005ASPC..347..491S},
-	pages = {491},
-	file = {Full Text PDF:/home/carterrhea/Zotero/storage/KW3GID8I/Shupe et al. - 2005 - The SIP Convention for Representing Distortion in FITS Image Headers.pdf:application/pdf},
+Bump the actions group across 1 directory with 3 updates by @dependabot[bot] in https://github.com/astropy/astroscrappy/pull/91
+
+Bump {OpenAstronomy}/github-actions-workflows from 1.14.0 to 1.15.0 in /.github/workflows in the actions group by @dependabot[bot] in https://github.com/astropy/astroscrappy/pull/92
+
+Bump the actions group in /.github/workflows with 2 updates by @dependabot[bot] in https://github.com/astropy/astroscrappy/pull/93
+
+Bump actions/setup-python from 5.4.0 to 5.5.0 in /.github/workflows in the actions group by @dependabot[bot] in https://github.com/astropy/astroscrappy/pull/96
+
+Bump actions/setup-python from 5.5.0 to 5.6.0 in /.github/workflows in the actions group by @dependabot[bot] in https://github.com/astropy/astroscrappy/pull/97
+
+Bump {OpenAstronomy}/github-actions-workflows from 1.16.0 to 2.1.0 in /.github/workflows in the actions group by @dependabot[bot] in https://github.com/astropy/astroscrappy/pull/99
+
+Bump {OpenAstronomy}/github-actions-workflows from 2.1.0 to 2.2.1 in /.github/workflows in the actions group by @dependabot[bot] in https://github.com/astropy/astroscrappy/pull/100
+
+Bump actions/checkout from 4.2.2 to 5.0.0 in /.github/workflows in the actions group by @dependabot[bot] in https://github.com/astropy/astroscrappy/pull/103
+
+Bump actions/setup-python from 5.6.0 to 6.0.0 in /.github/workflows in the actions group by @dependabot[bot] in https://github.com/astropy/astroscrappy/pull/104
+
+Update infrastructure by @astrofrog in https://github.com/astropy/astroscrappy/pull/106
+
+Run aarch64 wheel builds on native arm64 by @astrofrog in https://github.com/astropy/astroscrappy/pull/107
+
+Avoid conflicts with C23's new keywords by @saimn in https://github.com/astropy/astroscrappy/pull/101
+
+Refactor of utility C code for less duplication by @cmccully in https://github.com/astropy/astroscrappy/pull/76
+
+
+New Contributors
+
+
+
+@dependabot[bot] made their first contribution in https://github.com/astropy/astroscrappy/pull/91
+
+
+Full Changelog: https://github.com/astropy/astroscrappy/compare/v1.2.0...v1.3.0},
+	publisher = {Zenodo},
+	author = {Robitaille, Thomas and Conseil, Simon and Sipőcz, Brigitta and {McCully}, Curtis and Tollerud, Erik and Droettboom, Michael and Lim, P. L. and Bradley, Larry and Bray, E. M. and Craig, Matt and Deil, Christoph and Price-Whelan, Adrian and Barbary, Kyle and Ginsburg, Adam and Robert, Clément and Kerzendorf, Wolfgang and Gupta, Ayush and D'Avella, Dan and Burke, Doug and Betts, Edward and Crawford, Steve and Zabalza, Víctor and Günther, Hans Moritz},
+	urldate = {2025-12-08},
+	date = {2025-10-31},
+	doi = {10.5281/zenodo.17495347},
+	file = {Snapshot:/home/carterrhea/Zotero/storage/R8D23I55/17495347.html:text/html},
 }
 
 @misc{paszke_pytorch_2019,
 	title = {{PyTorch}: An Imperative Style, High-Performance Deep Learning Library},
-	shorttitle = {{PyTorch}},
 	url = {https://ui.adsabs.harvard.edu/abs/2019arXiv191201703P},
 	doi = {10.48550/arXiv.1912.01703},
-	abstract = {Deep learning frameworks have often focused on either usability or speed, but not both. PyTorch is a machine learning library that shows that these two goals are in fact compatible: it provides an imperative and Pythonic programming style that supports code as a model, makes debugging easy and is consistent with other popular scientific computing libraries, while remaining efficient and supporting hardware accelerators such as GPUs. In this paper, we detail the principles that drove the implementation of PyTorch and how they are reflected in its architecture. We emphasize that every aspect of PyTorch is a regular Python program under the full control of its user. We also explain how the careful and pragmatic implementation of the key components of its runtime enables them to work together to achieve compelling performance. We demonstrate the efficiency of individual subsystems, as well as the overall speed of PyTorch on several common benchmarks.},
-	urldate = {2025-03-12},
-	author = {Paszke, Adam and Gross, Sam and Massa, Francisco and Lerer, Adam and Bradbury, James and Chanan, Gregory and Killeen, Trevor and Lin, Zeming and Gimelshein, Natalia and Antiga, Luca and Desmaison, Alban and Köpf, Andreas and Yang, Edward and DeVito, Zach and Raison, Martin and Tejani, Alykhan and Chilamkurthy, Sasank and Steiner, Benoit and Fang, Lu and Bai, Junjie and Chintala, Soumith},
-	month = dec,
-	year = {2019},
-	note = {Publication Title: arXiv e-prints
-ADS Bibcode: 2019arXiv191201703P},
-	keywords = {Computer Science - Machine Learning, Statistics - Machine Learning, Computer Science - Mathematical Software},
-	file = {Full Text PDF:/home/carterrhea/Zotero/storage/Y9SJUDF6/Paszke et al. - 2019 - PyTorch An Imperative Style, High-Performance Deep Learning Library.pdf:application/pdf},
-}
-
-@misc{crameri_scientific_2023,
-	title = {Scientific colour maps},
-	url = {https://zenodo.org/records/8409685},
-	abstract = {Suite of scientific, colour-vision deficiency friendly and perceptually-uniform colour maps (www.fabiocrameri.ch/colourmaps) that include all readers and significantly reduce visual errors.
-
-
-
-	
-Book graphic design masterclasses on how to best use colour in a scientific context via www.fabiocrameri.ch/masterclasses.
-	
-Commission professional graphic design support via Undertone.design.
-	
-Support the underlying cause and the development of the Scientific colour maps via www.fabiocrameri.ch/products.},
-	urldate = {2025-03-12},
-	publisher = {Zenodo},
-	author = {Crameri, Fabio},
-	month = oct,
-	year = {2023},
-	doi = {10.5281/zenodo.8409685},
-	keywords = {batlow, color gradient, color map, color palette, color perception, color scheme, colormap, colour palettes, colour schemes, colour vision deficiency, CVD, data representation, perceptually uniform, scientific colormap, scientific colour maps, scientific colourmap, scientific visualisation, visualisation, visualization},
-	file = {Snapshot:/home/carterrhea/Zotero/storage/QR72KCQV/8409685.html:text/html},
+	shorttitle = {{PyTorch}},
+	abstract = {Deep learning frameworks have often focused on either usability or speed, but not both. {PyTorch} is a machine learning library that shows that these two goals are in fact compatible: it provides an imperative and Pythonic programming style that supports code as a model, makes debugging easy and is consistent with other popular scientific computing libraries, while remaining efficient and supporting hardware accelerators such as {GPUs}. In this paper, we detail the principles that drove the implementation of {PyTorch} and how they are reflected in its architecture. We emphasize that every aspect of {PyTorch} is a regular Python program under the full control of its user. We also explain how the careful and pragmatic implementation of the key components of its runtime enables them to work together to achieve compelling performance. We demonstrate the efficiency of individual subsystems, as well as the overall speed of {PyTorch} on several common benchmarks.},
+	publisher = {{arXiv}},
+	author = {Paszke, Adam and Gross, Sam and Massa, Francisco and Lerer, Adam and Bradbury, James and Chanan, Gregory and Killeen, Trevor and Lin, Zeming and Gimelshein, Natalia and Antiga, Luca and Desmaison, Alban and Köpf, Andreas and Yang, Edward and {DeVito}, Zach and Raison, Martin and Tejani, Alykhan and Chilamkurthy, Sasank and Steiner, Benoit and Fang, Lu and Bai, Junjie and Chintala, Soumith},
+	urldate = {2025-12-08},
+	date = {2019-12-01},
+	note = {{ADS} Bibcode: 2019arXiv191201703P},
+	keywords = {Computer Science - Machine Learning, Computer Science - Mathematical Software, Statistics - Machine Learning},
+	file = {Full Text PDF:/home/carterrhea/Zotero/storage/7AQRRHBX/Paszke et al. - 2019 - PyTorch An Imperative Style, High-Performance Deep Learning Library.pdf:application/pdf},
 }
