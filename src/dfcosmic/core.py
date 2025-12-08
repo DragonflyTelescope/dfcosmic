@@ -1,12 +1,9 @@
 import numpy as np
-import torch
-from scipy.ndimage import binary_dilation, median_filter
-from scipy.signal import convolve2d
+from scipy.ndimage import binary_dilation
 from scipy.stats import sigmaclip
 from torch.nn.functional import avg_pool2d
 
 from dfcosmic.utils import (
-    avg_pool2d_numpy_fast,
     block_replicate_scipy,
     block_replicate_torch,
     convolve,
@@ -59,6 +56,11 @@ def lacosmic(
     -----
     If the gain is set to zero (or not provided), then we compute it assuming sky-dominated noise and poisson statistics.
     """
+    try:
+        import torch
+    except ImportError:
+        raise ImportError("PyTorch is not installed. Please install it with 'pip install torch'. \n If you do not wish to use the PyTorch version, please run `lacosmic_scipy` instead.")
+
     # Set image to Torch tensor if it's a NumPy array
     if isinstance(image, np.ndarray):
         image = torch.from_numpy(image).float().to(device)
@@ -212,7 +214,6 @@ def lacosmic_scipy(
     """
 
     # Define kernels
-    # Kernels
     block_size_tuple = (2, 2)
     laplacian_kernel = np.array([[0, -1, 0],
                                  [-1, 4, -1],
