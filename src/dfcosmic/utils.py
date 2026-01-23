@@ -24,10 +24,11 @@ def _process_block_inputs(
             "length as the number of data dimensions"
         )
 
-    block_size_int = block_size.detach().clone()
-    if torch.any(block_size_int != block_size):  # e.g., 2.0 is OK, 2.1 is not
+    # Check if all elements are integers (e.g., 2.0 is OK, 2.5 is not)
+    if not torch.all(block_size == torch.floor(block_size)):
         raise ValueError("block_size elements must be integers")
 
+    block_size_int = block_size.long()
     return data, block_size_int
 
 
@@ -67,16 +68,6 @@ def block_replicate_torch(
         data = data / torch.prod(block_size)
 
     return data
-
-
-def block_replicate_scipy(
-    data: np.ndarray, block_size: tuple[int, int], conserve_sum: bool = True
-):
-    out = zoom(data, zoom=block_size, order=0)  # order=0 → nearest neighbor
-
-    if conserve_sum:
-        out = out / np.prod(block_size)
-    return out
 
 
 def convolve(image: torch.Tensor, kernel: torch.Tensor) -> torch.Tensor:

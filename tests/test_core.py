@@ -231,6 +231,17 @@ class TestLacosmicEdgeCases:
         # Uniform image should have minimal masking
         assert mask.sum() < image.numel() * 0.05
 
+    def test_no_cosmic_rays_early_exit(self):
+        """Test early exit when no cosmic rays are detected."""
+        # Create a smooth image with no cosmic rays
+        image = torch.rand((50, 50)) * 100 + 1000
+        # Use high sigclip to ensure no CRs are detected
+        cleaned, mask = lacosmic(image, sigclip=20.0, niter=5, gain=1.0, readnoise=5.0)
+        # Should exit early if no CRs found
+        assert mask.sum() == 0
+        # Image should be unchanged
+        np.testing.assert_array_almost_equal(cleaned, image.cpu().numpy())
+
     def test_very_low_sigclip(self):
         """Test with very low sigclip (aggressive detection)."""
         image = torch.rand((50, 50)) * 1000

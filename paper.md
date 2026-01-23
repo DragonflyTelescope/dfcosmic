@@ -85,7 +85,7 @@ In order to showcase `dfcosmic`, we construct an example image that is 100x100 p
 ![\label{fig:demo} Example of `dfcosmic` on a mock image containing fake elliptical galaxies, stars, and cosmic rays.](demo/example.png)
 
 ## Speed Testing
-An important aspect of `dfcosmic` is that it reduces computation time while using the classic median filter. In order to test this, we run the following codes under the following conditions on the mock data used for testing by [astroscrappy]. We run the following options:
+An important aspect of `dfcosmic` is that it reduces computation time while using the classic median filter **if a GPU is available**. In order to demonstrate this, we run the following codes under the following conditions on the mock data used for testing by [astroscrappy] with a typically sized image for MOTHRA (4000x6500). We run the following options:
  
  - `dfcosmic` on CPU
  - `dfcosmic` on GPU
