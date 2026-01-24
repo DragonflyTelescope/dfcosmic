@@ -4,7 +4,6 @@ import torch
 
 from dfcosmic.utils import (
     _process_block_inputs,
-    avg_pool2d_numpy_fast,
     block_replicate_torch,
     convolve,
     dilation_pytorch,
@@ -333,42 +332,3 @@ class TestSigmaClipPytorch:
         data_original = data.clone()
         sigma_clip_pytorch(data, sigma=3.0, maxiters=5)
         assert torch.equal(data, data_original)
-
-
-class TestAvgPool2dNumpyFast:
-    """Tests for avg_pool2d_numpy_fast function."""
-
-    def test_basic_pooling(self):
-        """Test basic average pooling."""
-        data = np.array(
-            [
-                [1.0, 2.0, 3.0, 4.0],
-                [5.0, 6.0, 7.0, 8.0],
-                [9.0, 10.0, 11.0, 12.0],
-                [13.0, 14.0, 15.0, 16.0],
-            ]
-        )
-        block_size = (2, 2)
-        result = avg_pool2d_numpy_fast(data, block_size)
-        assert result.shape == (2, 2)
-        # Top-left block average: (1+2+5+6)/4 = 3.5
-        assert result[0, 0] == 3.5
-        # Top-right block average: (3+4+7+8)/4 = 5.5
-        assert result[0, 1] == 5.5
-
-    def test_non_divisible_size(self):
-        """Test with image size not divisible by block size."""
-        data = np.ones((5, 5))
-        block_size = (2, 2)
-        result = avg_pool2d_numpy_fast(data, block_size)
-        # Should truncate to 4x4 before pooling
-        assert result.shape == (2, 2)
-
-    def test_larger_blocks(self):
-        """Test with larger block sizes."""
-        data = np.ones((6, 6))
-        block_size = (3, 3)
-        result = avg_pool2d_numpy_fast(data, block_size)
-        assert result.shape == (2, 2)
-        # All values should be 1.0 (average of all 1s)
-        np.testing.assert_array_equal(result, np.ones((2, 2)))
