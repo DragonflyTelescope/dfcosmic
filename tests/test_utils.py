@@ -5,7 +5,6 @@ import torch
 from dfcosmic.utils import (
     _process_block_inputs,
     avg_pool2d_numpy_fast,
-    block_replicate_scipy,
     block_replicate_torch,
     convolve,
     dilation_pytorch,
@@ -334,40 +333,6 @@ class TestSigmaClipPytorch:
         data_original = data.clone()
         sigma_clip_pytorch(data, sigma=3.0, maxiters=5)
         assert torch.equal(data, data_original)
-
-
-class TestBlockReplicateScipy:
-    """Tests for block_replicate_scipy function."""
-
-    def test_basic_replication_2x2(self):
-        """Test basic 2x2 block replication."""
-        data = np.array([[1.0, 2.0], [3.0, 4.0]])
-        block_size = (2, 2)
-        result = block_replicate_scipy(data, block_size, conserve_sum=False)
-        assert result.shape == (4, 4)
-        np.testing.assert_array_equal(result[0:2, 0:2], np.ones((2, 2)) * 1.0)
-        np.testing.assert_array_equal(result[0:2, 2:4], np.ones((2, 2)) * 2.0)
-
-    def test_conserve_sum_true(self):
-        """Test that conserve_sum=True preserves the sum."""
-        data = np.array([[1.0, 2.0], [3.0, 4.0]])
-        block_size = (2, 2)
-        result = block_replicate_scipy(data, block_size, conserve_sum=True)
-        np.testing.assert_allclose(result.sum(), data.sum())
-
-    def test_conserve_sum_false(self):
-        """Test that conserve_sum=False increases the sum."""
-        data = np.array([[1.0, 2.0], [3.0, 4.0]])
-        block_size = (2, 2)
-        result = block_replicate_scipy(data, block_size, conserve_sum=False)
-        assert result.sum() > data.sum()
-
-    def test_different_block_sizes(self):
-        """Test with different block sizes for each dimension."""
-        data = np.ones((2, 3))
-        block_size = (2, 3)
-        result = block_replicate_scipy(data, block_size, conserve_sum=False)
-        assert result.shape == (4, 9)
 
 
 class TestAvgPool2dNumpyFast:

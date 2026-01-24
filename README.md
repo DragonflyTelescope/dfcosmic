@@ -23,6 +23,14 @@ cd dfcosmic
 pip install -e .
 ```
 
+Note: the CPU extensions (median filter + dilation) are compiled during install for speed. This requires a working C++ toolchain. If you need to pass custom OpenMP flags, you can do so via environment variables, for example:
+
+```bash
+export CXXFLAGS="-O3 -fopenmp -march=native"
+export LDFLAGS="-fopenmp"
+pip install -e .
+```
+
 For development installation with documentation dependencies:
 
 ```bash
