@@ -27,7 +27,7 @@ def gaussian(image_shape, x0, y0, brightness, fwhm):
     return normfactor * np.exp(exponent)
 
 
-def make_fake_data(size=(2000, 2000)):
+def make_fake_data(size=(6000, 4000)):
     """
     Generate fake data that can be used to test the detection and cleaning algorithms
 
@@ -97,6 +97,7 @@ for n_threads in num_threads:
     )
 
     elapsed_dfcosmic_cpu = time.perf_counter() - start_dfcosmic_cpu
+    print(elapsed_dfcosmic_cpu)
     dfcosmic_cpu.append(elapsed_dfcosmic_cpu)
 
 astroscrappy_sepmed_false = []
@@ -113,6 +114,7 @@ for n_threads in num_threads:
             sepmed=False,
         )
         elapsed_astroscrappy = time.perf_counter() - start_astroscrappy
+        print(elapsed_astroscrappy)
         astroscrappy_sepmed_false.append(elapsed_astroscrappy)
 
 colors = [

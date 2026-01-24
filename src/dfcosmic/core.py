@@ -59,6 +59,7 @@ def lacosmic(
     device: str = "cpu",
     debug_backend: bool = False,
     cpu_threads: int | None = None,
+    use_cpp: bool = True,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Remove cosmic rays from an image using the LA Cosmic algorithm by Pieter van Dokkum.
@@ -104,6 +105,8 @@ def lacosmic(
     device = torch.device(device)
     use_cpp_median = device.type == "cpu" and cpp_median_available()
     use_cpp_dilation = device.type == "cpu" and cpp_dilation_available()
+    use_cpp_median = use_cpp and device.type == "cpu" and cpp_median_available()
+    use_cpp_dilation = use_cpp and device.type == "cpu" and cpp_dilation_available()
 
     cpu_thread_ctx = nullcontext()
     if device.type == "cpu" and cpu_threads is not None:
