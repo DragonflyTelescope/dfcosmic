@@ -4,8 +4,6 @@ import torch
 
 from dfcosmic.utils import (
     _process_block_inputs,
-    avg_pool2d_numpy_fast,
-    block_replicate_scipy,
     block_replicate_torch,
     convolve,
     dilation_pytorch,
@@ -334,76 +332,3 @@ class TestSigmaClipPytorch:
         data_original = data.clone()
         sigma_clip_pytorch(data, sigma=3.0, maxiters=5)
         assert torch.equal(data, data_original)
-
-
-class TestBlockReplicateScipy:
-    """Tests for block_replicate_scipy function."""
-
-    def test_basic_replication_2x2(self):
-        """Test basic 2x2 block replication."""
-        data = np.array([[1.0, 2.0], [3.0, 4.0]])
-        block_size = (2, 2)
-        result = block_replicate_scipy(data, block_size, conserve_sum=False)
-        assert result.shape == (4, 4)
-        np.testing.assert_array_equal(result[0:2, 0:2], np.ones((2, 2)) * 1.0)
-        np.testing.assert_array_equal(result[0:2, 2:4], np.ones((2, 2)) * 2.0)
-
-    def test_conserve_sum_true(self):
-        """Test that conserve_sum=True preserves the sum."""
-        data = np.array([[1.0, 2.0], [3.0, 4.0]])
-        block_size = (2, 2)
-        result = block_replicate_scipy(data, block_size, conserve_sum=True)
-        np.testing.assert_allclose(result.sum(), data.sum())
-
-    def test_conserve_sum_false(self):
-        """Test that conserve_sum=False increases the sum."""
-        data = np.array([[1.0, 2.0], [3.0, 4.0]])
-        block_size = (2, 2)
-        result = block_replicate_scipy(data, block_size, conserve_sum=False)
-        assert result.sum() > data.sum()
-
-    def test_different_block_sizes(self):
-        """Test with different block sizes for each dimension."""
-        data = np.ones((2, 3))
-        block_size = (2, 3)
-        result = block_replicate_scipy(data, block_size, conserve_sum=False)
-        assert result.shape == (4, 9)
-
-
-class TestAvgPool2dNumpyFast:
-    """Tests for avg_pool2d_numpy_fast function."""
-
-    def test_basic_pooling(self):
-        """Test basic average pooling."""
-        data = np.array(
-            [
-                [1.0, 2.0, 3.0, 4.0],
-                [5.0, 6.0, 7.0, 8.0],
-                [9.0, 10.0, 11.0, 12.0],
-                [13.0, 14.0, 15.0, 16.0],
-            ]
-        )
-        block_size = (2, 2)
-        result = avg_pool2d_numpy_fast(data, block_size)
-        assert result.shape == (2, 2)
-        # Top-left block average: (1+2+5+6)/4 = 3.5
-        assert result[0, 0] == 3.5
-        # Top-right block average: (3+4+7+8)/4 = 5.5
-        assert result[0, 1] == 5.5
-
-    def test_non_divisible_size(self):
-        """Test with image size not divisible by block size."""
-        data = np.ones((5, 5))
-        block_size = (2, 2)
-        result = avg_pool2d_numpy_fast(data, block_size)
-        # Should truncate to 4x4 before pooling
-        assert result.shape == (2, 2)
-
-    def test_larger_blocks(self):
-        """Test with larger block sizes."""
-        data = np.ones((6, 6))
-        block_size = (3, 3)
-        result = avg_pool2d_numpy_fast(data, block_size)
-        assert result.shape == (2, 2)
-        # All values should be 1.0 (average of all 1s)
-        np.testing.assert_array_equal(result, np.ones((2, 2)))

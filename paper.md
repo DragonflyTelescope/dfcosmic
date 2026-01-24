@@ -49,7 +49,7 @@ bibliography: dfcosmic.bib
 
 
 # Statement of need
-Although several implementations LA Cosmic ([@van_dokkum_cosmic-ray_2001]) exist such as lacosmic ([@bradley_larrybradleylacosmic_2025]) and astroscrappy ([@robitaille_astropyastroscrappy_2025]), these implementations either deviate from the original algorithm in order to achieve computational gains or do not run fast enough for practical usage. In particular, the data reduction pipeline for the MOTHRA instrument requires rapid cosmic ray identification and removal for tens of thousands of images every night using only a single core (2 threads) per image. Importantly, experiments on the preliminary data have demonstrated that it is crucial to use the original implementation (notably a true median filter rather than a sliding or separable median filter) in order to capture all the cosmic rays without accidentally removing bright stars.
+Although several implementations LA Cosmic [@van_dokkum_cosmic-ray_2001] exist such as `lacosmic` [@bradley_larrybradleylacosmic_2025] and `astroscrappy `[@robitaille_astropyastroscrappy_2025], these implementations either deviate from the original algorithm in order to achieve computational gains or do not run fast enough for practical usage. In particular, the data reduction pipeline for the MOTHRA instrument requires rapid cosmic ray identification and removal for tens of thousands of images every night using only a single core (2 threads) per image. Importantly, experiments on the preliminary data have demonstrated that it is crucial to use the original implementation (notably a true median filter rather than a separable median filter) in order to capture all the cosmic rays without accidentally removing bright stars.
 
 
 # Methods
@@ -66,7 +66,7 @@ The algorithm follows the methodology described in detail in [@van_dokkum_cosmic
 6. Determine which neighboring pixels to include
 7. Replace confirmed cosmic rays with median of neighbors
 
-Importantly, we use the classic median filter rather than any optimized version. We overcome the additional computational costs associated with this computation by implementing our methodology in `PyTorch` [@paszke_pytorch_2019].
+Importantly, we use the classic median filter rather than any optimized version. We overcome the additional computational costs associated with this computation by implementing our methodology in `PyTorch` [@paszke_pytorch_2019] with certain functions (the median filter and dilation) written in C++.
 
 ## Parameters
 There are several key parameters that a user can set depending on their specific use case:
@@ -75,7 +75,7 @@ There are several key parameters that a user can set depending on their specific
 2. `sigfrac`: the fractional detection limit for neighboring pixels
 3. `sigclip`: the detection limit for cosmic rays
 
-Additionally, the user can supply the gain and readnoise. If a gain is not supplied, then it will be estimated at each iteration.
+Furthermore, the user can supply the gain and readnoise. If a gain is not supplied, then it will be estimated at each iteration.
 
 # Results
 
@@ -87,14 +87,17 @@ In order to showcase `dfcosmic`, we construct an example image that is 100x100 p
 ## Speed Testing
 An important aspect of `dfcosmic` is that it reduces computation time while using the classic median filter **if a GPU is available**. In order to demonstrate this, we run the following codes under the following conditions on the mock data used for testing by [astroscrappy] with a typically sized image for MOTHRA (4000x6500). We run the following options:
  
- - `dfcosmic` on CPU
+ - `dfcosmic` on CPU with C++ optimizations
+ - `dfcosmic` on CPU without C++ optimization
  - `dfcosmic` on GPU
- - `dfcosmic` with `scipy`
  - `astroscrappy` with `sepmed=True`
  - `astroscrappy` with `sepmed=False`
  - `lacosmic`
 
-Additionally, we run each option with 1, 2, 4, and 8 threads. 
+We run each option with 1, 2, 4, and 8 threads. 
+
+![\label{fig:demo} Timing comparison of the many variants of cosmic ray removal codes.](demo/comparison.png)
+
 
 # Acknowledgements
 We acknowledge the Dragonfly FRO and particularly thank Lisa Sloan for her project management skills.

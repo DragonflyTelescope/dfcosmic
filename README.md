@@ -23,6 +23,14 @@ cd dfcosmic
 pip install -e .
 ```
 
+Note: the CPU extensions (median filter + dilation) are compiled during install for speed. This requires a working C++ toolchain. If you need to pass custom OpenMP flags, you can do so via environment variables, for example:
+
+```bash
+export CXXFLAGS="-O3 -fopenmp -march=native"
+export LDFLAGS="-fopenmp"
+pip install -e .
+```
+
 For development installation with documentation dependencies:
 
 ```bash
@@ -58,19 +66,12 @@ If you are unsure of either the gain or the readnoise you can leave them blank o
 ![Example](demos/example.png)
 
 ## Timing Comparisons
-We compare our pytorch implementation running on either a CPU or GPU with two popular cosmic ray removal codes: [lacosmic](https://github.com/larrybradley/lacosmic) and [astroscrappy](https://github.com/larrybradley/lacosmic).
+We compare our pytorch implementation running on either a CPU (torch), CPU (torch & c++) or GPU with two popular cosmic ray removal codes: [lacosmic](https://github.com/larrybradley/lacosmic) and [astroscrappy](https://github.com/astropy/astroscrappy).
 
 In order to run this timing comparison, we use the synthetic data described (and created) in the [astroscrappy testing suite](https://github.com/astropy/astroscrappy/blob/main/astroscrappy/tests/fake_data.py). The full notebook can be found in [demos/Comparison.ipynb](./demos/Comparison.ipynb).
 
-The runtimes for the four options are as follows:
+![Timing Comparisons](demos/comparison.png)
 
-dfcosmic CPU runtime: *5.6413 seconds*
-
-dfcosmic GPU runtime: *2.3594 seconds*
-
-astroscrappy runtime: *2.8420 seconds*
-
-lacosmic runtime: *24.8594 seconds*
 
 ## Running Tests
 The unit tests can be run using the following command:
@@ -97,4 +98,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 The License for all past and present versions is the GPL-3.0.
 
 ## AI Disclosure
-Claude code was used to help with the unit tests *only*.
+Claude code was used to help with the unit tests *only*. ChatGPT was used to create the c++ code for the median filter and dilation - these were thoroughly reviewed by the authors.

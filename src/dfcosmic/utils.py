@@ -1,7 +1,27 @@
-import numpy as np
+import os
+
 import torch
 import torch.nn.functional as F
-from scipy.ndimage import zoom
+
+_DISABLE_CPP = os.environ.get("DFCOSMIC_DISABLE_CPP", "").lower() in {
+    "1",
+    "true",
+    "yes",
+}
+
+try:
+    import median_filter_cpp
+
+    _CPP_MEDIAN_AVAILABLE = not _DISABLE_CPP
+except Exception:
+    _CPP_MEDIAN_AVAILABLE = False
+
+try:
+    import dilation_cpp
+
+    _CPP_DILATION_AVAILABLE = not _DISABLE_CPP
+except Exception:
+    _CPP_DILATION_AVAILABLE = False
 
 
 def _process_block_inputs(
@@ -60,8 +80,17 @@ def block_replicate_torch(
 
     """
     data, block_size = _process_block_inputs(data, block_size)
-    for i in range(data.ndim):
-        data = torch.repeat_interleave(data, block_size[i], dim=i)
+
+    # Optimized version using repeat for 2D case (most common)
+    if data.ndim == 2:
+        # Use repeat which is faster than repeat_interleave for block replication
+        data = data.repeat_interleave(block_size[0], dim=0).repeat_interleave(
+            block_size[1], dim=1
+        )
+    else:
+        # General case for any dimensionality
+        for i in range(data.ndim):
+            data = torch.repeat_interleave(data, block_size[i], dim=i)
 
     if conserve_sum:
         # in-place division can fail due to dtype casting rule
@@ -100,22 +129,32 @@ def convolve(image: torch.Tensor, kernel: torch.Tensor) -> torch.Tensor:
 
 def median_filter_torch(image: torch.Tensor, kernel_size: int = 3) -> torch.Tensor:
     """Applies a median filter using torch operations."""
-    # b, c, h, w = image.shape
     h, w = image.shape
     pad = kernel_size // 2
-    image = image.unsqueeze(0).unsqueeze(0)  # Shape becomes (1, 1, H, W)
-    # Pad the image
-    image_padded = torch.nn.functional.pad(image, (pad, pad, pad, pad), mode="reflect")
 
-    # Use unfold to extract sliding window patches
+    image_padded = torch.nn.functional.pad(
+        image.unsqueeze(0).unsqueeze(0), (pad, pad, pad, pad), mode="replicate"
+    )
+
     unfolded = torch.nn.functional.unfold(image_padded, kernel_size, stride=1)
-    # unfolded = unfolded.view(b, c, kernel_size * kernel_size, h, w)
-    unfolded = unfolded.squeeze(0).squeeze(0)
     unfolded = unfolded.view(kernel_size * kernel_size, h, w)
-    # Compute median along the window dimension
-    filtered, _ = unfolded.median(dim=0)
 
+    filtered, _ = unfolded.median(dim=0)
     return filtered
+
+
+def median_filter_cpp_torch(image: torch.Tensor, kernel_size: int = 3) -> torch.Tensor:
+    """Fast CPU median filter using the C++ extension."""
+    if not _CPP_MEDIAN_AVAILABLE:
+        raise RuntimeError("median_filter_cpp extension is not available")
+    if image.device.type != "cpu":
+        raise ValueError("median_filter_cpp_torch requires a CPU tensor")
+    if image.dtype != torch.float32:
+        image = image.float()
+    if not image.is_contiguous():
+        image = image.contiguous()
+
+    return median_filter_cpp.median_filter_cpu(image, kernel_size)
 
 
 # Definition of the dilation using PyTorch
@@ -160,6 +199,7 @@ def sigma_clip_pytorch(
     """
     Compute iterative sigma clipping (mimics IRAF iterstat)
 
+
     Returns
     -------
     clipped_data : torch.Tensor
@@ -172,24 +212,21 @@ def sigma_clip_pytorch(
     else:
         sigma_low, sigma_high = sigma
 
-    data = data.flatten().clone()  # Don't modify original
+    data = data.flatten().clone()
 
     for i in range(maxiters):
         torch.median(data)
         mean_val = torch.mean(data)
-        std_val = torch.std(data, unbiased=True)  # Use unbiased estimator
+        std_val = torch.std(data, unbiased=True)
 
-        # Define bounds
         lower = mean_val - sigma_low * std_val
         upper = mean_val + sigma_high * std_val
 
-        # Keep good pixels
         mask = (data >= lower) & (data <= upper)
         data_new = data[mask]
 
-        # Check convergence
         if len(data_new) == len(data):
-            break  # No pixels clipped
+            break
 
         data = data_new
 
@@ -204,12 +241,35 @@ def sigma_clip_pytorch(
     return data, stats
 
 
-def avg_pool2d_numpy_fast(temp, block_size):
-    bh, bw = block_size
-    H, W = temp.shape
+def dilation_cpp_torch(
+    image: torch.Tensor,
+    strel_shape: tuple[int, int],
+    origin: tuple[int, int] = (0, 0),
+    border_value: float = 0.0,
+) -> torch.Tensor:
+    if not _CPP_DILATION_AVAILABLE:
+        raise RuntimeError("dilation_cpp extension is not available")
+    if image.device.type != "cpu":
+        raise ValueError("dilation_cpp_torch requires a CPU tensor")
+    if image.dtype != torch.float32:
+        image = image.float()
+    if not image.is_contiguous():
+        image = image.contiguous()
 
-    Ht = (H // bh) * bh
-    Wt = (W // bw) * bw
-    temp = temp[:Ht, :Wt]
+    if isinstance(strel_shape, torch.Tensor):
+        if strel_shape.dim() == 2:
+            strel_shape = (int(strel_shape.shape[0]), int(strel_shape.shape[1]))
+        else:
+            strel_shape = tuple(int(x) for x in strel_shape.tolist())
 
-    return temp.reshape(Ht // bh, bh, Wt // bw, bw).mean(axis=(1, 3))
+    return dilation_cpp.dilation_cpu(
+        image, strel_shape[0], strel_shape[1], origin[0], origin[1], border_value
+    )
+
+
+def cpp_median_available() -> bool:
+    return _CPP_MEDIAN_AVAILABLE
+
+
+def cpp_dilation_available() -> bool:
+    return _CPP_DILATION_AVAILABLE
