@@ -70,6 +70,7 @@ We compare our pytorch implementation running on either a CPU (torch), CPU (torc
 
 In order to run this timing comparison, we use the synthetic data described (and created) in the [astroscrappy testing suite](https://github.com/astropy/astroscrappy/blob/main/astroscrappy/tests/fake_data.py). The full notebook can be found in [demos/Comparison.ipynb](./demos/Comparison.ipynb).
 
+![Timing Comparisons](demos/comparison.png)
 
 
 ## Running Tests

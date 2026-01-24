@@ -26,8 +26,13 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .
-          pip install pytest>=8.3.4 pytest-cov>=6.0.0
+
+          # Force CPU-only PyTorch so pip doesn't download CUDA wheels (nvidia-*)
+          python -m pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch
+
+          # Now install your package + test deps
+          python -m pip install --no-cache-dir -e .
+          python -m pip install --no-cache-dir "pytest>=8.3.4" "pytest-cov>=6.0.0"
 
       - name: Run tests with coverage
         run: |
