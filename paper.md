@@ -49,7 +49,7 @@ bibliography: dfcosmic.bib
 
 
 # Statement of need
-Although several implementations LA Cosmic [@van_dokkum_cosmic-ray_2001] exist such as `lacosmic` [@bradley_larrybradleylacosmic_2025] and `astroscrappy `[@robitaille_astropyastroscrappy_2025], these implementations either deviate from the original algorithm in order to achieve computational gains or do not run fast enough for practical usage. In particular, the data reduction pipeline for the MOTHRA instrument requires rapid cosmic ray identification and removal for tens of thousands of images every night using only a single core (2 threads) per image. Importantly, experiments on the preliminary data have demonstrated that it is crucial to use the original implementation (notably a true median filter rather than a separable median filter) in order to capture all the cosmic rays without accidentally removing bright stars.
+Although several implementations L.A.Cosmic [@van_dokkum_cosmic-ray_2001] exist such as `lacosmic` [@bradley_larrybradleylacosmic_2025] and `astroscrappy `[@robitaille_astropyastroscrappy_2025], these implementations either deviate from the original algorithm in order to achieve computational gains or do not run fast enough for practical usage. In particular, the data reduction pipeline for the MOTHRA instrument requires rapid cosmic ray identification and removal for tens of thousands of images every night using only a single core (2 threads) per image. Importantly, experiments on the preliminary data have demonstrated that it is crucial to use the original implementation (notably a true median filter rather than a separable median filter) in order to capture all the cosmic rays without accidentally removing bright stars.
 
 
 # Methods
@@ -85,7 +85,7 @@ In order to showcase `dfcosmic`, we construct an example image that is 100x100 p
 ![\label{fig:demo} Example of `dfcosmic` on a mock image containing fake elliptical galaxies, stars, and cosmic rays.](demo/example.png)
 
 ## Speed Testing
-An important aspect of `dfcosmic` is that it reduces computation time while using the classic median filter **if a GPU is available**. In order to demonstrate this, we run the following codes under the following conditions on the mock data used for testing by [astroscrappy] with a typically sized image for MOTHRA (4000x6500). We run the following options:
+An important aspect of `dfcosmic` is that it reduces computation time while using the classic median filter **if using the C++ optimized code or a GPU is available**. In order to demonstrate this, we run the following codes under the following conditions on the mock data used for testing by [astroscrappy] with a typically sized image for MOTHRA (4000x6500). We run the following options:
  
  - `dfcosmic` on CPU with C++ optimizations
  - `dfcosmic` on CPU without C++ optimization
@@ -96,7 +96,9 @@ An important aspect of `dfcosmic` is that it reduces computation time while usin
 
 We run each option with 1, 2, 4, and 8 threads. 
 
-![\label{fig:demo} Timing comparison of the many variants of cosmic ray removal codes.](demo/comparison.png)
+The GPU used in this test was a NVIDIA GeForce RTX 5060 Ti 16GB while the CPU was an AMD Ryzen 9 9950X 16-Core Processor.
+
+![\label{fig:comparison} Timing comparison of the many variants of cosmic ray removal codes.](demo/comparison.png)
 
 
 # Acknowledgements
