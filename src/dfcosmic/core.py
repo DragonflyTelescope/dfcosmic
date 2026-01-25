@@ -57,7 +57,6 @@ def lacosmic(
     gain: float = 0.0,
     readnoise: float = 0.0,
     device: str = "cpu",
-    debug_backend: bool = False,
     cpu_threads: int | None = None,
     use_cpp: bool = True,
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -71,20 +70,26 @@ def lacosmic(
     image : torch.Tensor|np.ndarray
         The input image.
     sigclip : float
-        The detection limit for cosmic rays (sigma)
+        The detection limit for cosmic rays (sigma). Default is 4.5.
     sigfrac : float
-        The fractional detection limit for neighboring pixels
+        The fractional detection limit for neighboring pixels. Default is 0.5.
     objlim : float
-        The contrast limit between CR and underlying objects
+        The contrast limit between CR and underlying objects. Default is 1.0.
     niter : int
-        The number of iterations to perform.
+        The number of iterations to perform. Default is 1.0.
     gain : float
         The gain of the image in electrons/ADU. Default is 0.0.
     readnoise : float
         The read noise of the image in electrons. Default is 0.0.
-    device : torch.device | str
-        The device to use for computation. Default is torch.device("cpu").
-    Returns:
+    device : str
+        The device to use for computation. Default is "cpu".
+    cpu_threads : int | None
+        Number of cpu threads to use. Default is None.
+    use_cpp : bool
+        Boolean to use cpp optimized median filter and dilation algorithms. Default is True.
+
+    Returns
+    -------
         np.ndarray
             The image with cosmic rays removed.
         np.ndarray
@@ -98,7 +103,8 @@ def lacosmic(
     ----------------
     For CPU performance:
     - Use gain parameter if known to avoid gain estimation overhead
-    - Set niter=1 for faster processing (at cost of detecting fewer cosmic rays)
+    - Set niter=1 for faster processing (at cost of potentially detecting fewer cosmic rays)
+    - set use_cpp=True to enable C++ implementations of the median filter and dilation functions
 
     For best performance, use CUDA-enabled GPU by setting device='cuda'.
     """
@@ -143,17 +149,7 @@ def lacosmic(
             median_filter_fn = median_filter_torch
             dilation_fn = dilation_pytorch
 
-        if debug_backend:
-            if device.type == "cpu":
-                median_backend = "cpp" if use_cpp_median else "torch"
-                dilation_backend = "cpp" if use_cpp_dilation else "torch"
-            else:
-                median_backend = "torch"
-                dilation_backend = "torch"
-            print(
-                f"[lacosmic] device={device.type} median={median_backend} dilation={dilation_backend} threads={cpu_threads}"
-            )
-
+        
         with torch.no_grad():
             for iteration in range(niter):
                 # Step 0: If gain is not set then approximate it
