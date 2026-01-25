@@ -1,6 +1,9 @@
 # dfcosmic
 
 [![Tests](https://github.com/DragonflyTelescope/dfcosmic/actions/workflows/test.yml/badge.svg)](https://github.com/DragonflyTelescope/dfcosmic/actions/workflows/test.yml)
+
+
+
 A high-performance Python package for cosmic ray removal strictly following the procedure outlined in [van Dokkum 2001](https://ui.adsabs.harvard.edu/abs/2001PASP..113.1420V/abstract). Although several other implementations exist, their procedures differ slightly from that described in van Dokkum 2001. In this package, we use [PyTorch](https://pytorch.org/) to achieve considerable speedup over the original implementation while retaining fidelity to the algorithmic choices presented in the original paper.
 
 ## Installation
@@ -98,4 +101,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 The License for all past and present versions is the GPL-3.0.
 
 ## AI Disclosure
-Claude code was used to help with the unit tests *only*. ChatGPT was used to create the c++ code for the median filter and dilation - these were thoroughly reviewed by the authors.
+Claude code was used to help with the unit tests *only*. ChatGPT was used to create *only* the c++ code for the median filter and dilation - these were thoroughly reviewed by the authors.
