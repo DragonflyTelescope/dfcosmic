@@ -71,3 +71,6 @@ Timing Analysis
 .. toctree::
     :maxdepth: 2
     :caption: API:
+
+    autoapi/index
+    csrc
