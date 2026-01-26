@@ -1,1 +1,3 @@
-from .core import lacosmic
+from .core import lacosmic as lacosmic
+
+__all__ = ["lacosmic"]

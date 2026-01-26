@@ -149,7 +149,6 @@ def lacosmic(
             median_filter_fn = median_filter_torch
             dilation_fn = dilation_pytorch
 
-        
         with torch.no_grad():
             for iteration in range(niter):
                 # Step 0: If gain is not set then approximate it

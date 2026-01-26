@@ -1,0 +1,18 @@
+repos:
+  # --- Secrets (whole repo) ---
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ["--baseline", ".secrets.baseline"]
+        exclude: ^(tests/|test/)
+
+  # --- Ruff (src only) ---
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.5
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^src/
+      - id: ruff-format
+        files: ^src/
