@@ -1,0 +1,648 @@
+
+<!DOCTYPE html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    
+    <meta name="docsearch:name" content="dfcosmic" />
+    <meta name="docsearch:package_type" content="" />
+    <meta name="docsearch:release" content="v1.0.0" />
+    <meta name="docsearch:version" content="" />
+    
+      <meta name="theme-color" content="#0DCAF0" />
+    
+    
+      <title>Timing comparisons with lacosmic and astroscrappy &mdash; dfcosmic v1.0.0 documentation</title>
+    
+    <link rel="canonical" href="demos/Comparison" />
+          <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8e8a900e" /><!-- add (1) -->
+          <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" /><!-- add (1) -->
+          <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" /><!-- add (1) -->
+          <link rel="stylesheet" type="text/css" href="../_static/sphinx-nefertiti-default.min.css?v=0c1bdb5f" /><!-- add (1) -->
+          <link rel="stylesheet" type="text/css" href="../_static/fonts/nunito/stylesheet.css?v=abf98f06" /><!-- add (1) -->
+          <link rel="stylesheet" type="text/css" href="../_static/fonts/ubuntu-sans-mono/stylesheet.css?v=8616a587" /><!-- add (1) -->
+          <link rel="stylesheet" type="text/css" href="../_static/pygments-dark.css?v=2de69186" /><!-- add (1) -->
+          <link rel="stylesheet" type="text/css" href="../_static/pygments-light.css?v=970f37b1" /><!-- add (1) -->
+          <link rel="stylesheet" type="text/css" href="../_static/bootstrap-icons.min.css?v=44730005" /><!-- add (1) -->
+          <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" /><!-- add (1) -->
+        <link rel="index" title="Index" href="../genindex.html" />
+        <link rel="search" title="Search" href="../search.html" />
+        <link rel="top" title="dfcosmic v1.0.0 documentation" href="#" />
+        <link rel="next" title="Example" href="Example.html" />
+        <link rel="prev" title="dfcosmic documentation" href="../index.html" />
+    <style>
+      :root {
+        --nftt-body-font-family: "Nunito", var(--nftt-font-sans-serif) !important;
+        --nftt-font-monospace: "Ubuntu Sans Mono", var(--nftt-font-family-monospace) !important;
+        --nftt-project-name-font: var(--nftt-body-font-family);
+        --nftt-documentation-font: var(--nftt-body-font-family);
+        --nftt-doc-headers-font: "Georgia", var(--nftt-documentation-font);}
+
+      h1 *,
+      h2 *,
+      h3 *,
+      h4 *,
+      h5 *,
+      h6 * {
+        font-size: inherit;
+      }
+
+      .light pre,
+      .dark pre {
+        line-height: var(--nftt-pre-line-height, 140%);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="back-to-top-container" class="position-fixed start-50 translate-middle-x">
+      <button id="back-to-top" type="button" class="d-none btn btn-neutral btn-sm shadow px-4" data-bs-toggle="button">Back to top</button>
+    </div>
+    <header id="snftt-nav-bar" class="navbar navbar-expand-xl navbar-dark nftt-navbar flex-column fixed-top">
+      <div class="skip-links container-fluid visually-hidden-focusable overflow-hidden justify-content-start flex-grow-1">
+        <div class="border-bottom mb-2 pb-2 w-100">
+          <a class="d-none d-md-inline-flex p-2 m-1" href="#sidebar-filter">Skip to index filter</a>
+          <a class="d-inline-flex p-2 m-1" href="#content">Skip to main content</a>
+        </div>
+      </div>
+      <nav class="container-xxl nftt-gutter flex-nowrap" aria-label="Main navigation">
+        <div class="nftt-navbar-toggler">
+          <button class="navbar-toggler p-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar" aria-label="Toggle documentation navigation">
+            <i class="bi bi-list"></i>
+          </button>
+        </div>
+          <a href="../index.html"
+             class="navbar-brand"
+          ><span class="brand-text">dfcosmic</span><span class="brand-short-text">dfcosmic</span></a>
+        
+        
+        <div class="d-flex d-xl-none">
+          <button class="navbar-toggler p-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#nfttSearch" aria-controls="nfttSearch" aria-label="Search">
+            <i class="bi bi-search"></i>
+          </button>
+          <button class="navbar-toggler p-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#nfttNavbar" aria-controls="nfttNavbar" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+        </div>
+        
+<div class="offcanvas-xl offcanvas-end flex-grow-1" tabindex="-1" id="nfttSearch" aria-labelledby="nfttSearchOffcanvasLabel" data-bs-scroll="true">
+  <div class="offcanvas-header px-4 pb-0">
+    <h5 class="offcanvas-title fw-bold" id="nfttSearchOffcanvasLabel">Search the documentation</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close" data-bs-target="#nfttSearch"></button>
+  </div>
+  <div class="offcanvas-body p-4 pt-0 p-xl-0 ps-xl-4">
+    <hr class="d-xl-none text-white-50">
+    <ul class="navbar-nav flex-row align-items-center flex-wrap ms-md-auto">
+      <li class="nav-item col-12 col-xl-auto">
+        <form id="nftt-search-form" action="../search.html" method="get">
+          <div class="input-group">
+            <input type="text" name="q" class="form-control search-input" placeholder="Search" aria-label="Search" aria-describedby="button-search">
+            <input type="hidden" name="check_keywords" value="yes" />
+            <input type="hidden" name="area" value="default" />
+            <button class="btn btn-primary" type="submit" id="button-search" aria-label="Search"><i class="bi bi-search"></i></button>
+          </div>
+        </form>
+      </li>
+    </ul>
+  </div>
+</div>
+
+        <div class="offcanvas-xl offcanvas-end" tabindex="-1" id="nfttNavbar" aria-labelledby="nfttNavbarOffcanvasLabel" data-bs-scroll="true">
+          <div class="offcanvas-header px-4 pb-0">
+            <div class="offcanvas-title navbar-brand" id="nfttNavbarOffcanvasLabel"><span class="brand-short-text">dfcosmic</span></div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close" data-bs-target="#nfttNavbar"></button>
+          </div>
+          <div class="offcanvas-body p-4 pt-0 p-xl-0 px-xl-3">
+            <hr class="d-xl-none text-white-50">
+            <ul class="navbar-nav flex-row align-items-center flex-wrap ms-lg-auto">
+              
+              
+              
+              
+              
+              <!-- lightdark-dropdown.html -->
+<li class="nav-item dropdown">
+  <a class="nav-link d-flex py-2 px-0 px-xl-2 dropdown-toggle align-items-center" id="snftt-luz" href="#" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" aria-label="Change appearance">
+    <i class="bi bi-circle-half" data-snftt-luz-icon-active></i>
+    <span id="snftt-luz-text" class="d-xl-none ms-2">Change appearance</span>
+  </a>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="snftt-luz-text">
+    <li>
+      <h6 class="dropdown-header">Change appearance</h6>
+    </li>
+    <li>
+      <a class="dropdown-item d-flex align-items-center" data-snftt-luz="light" href="#" aria-pressed="false">
+        <span>
+          <i class="bi bi-sun" data-snftt-luz-icon="light"></i>
+        </span>
+        <span class="ms-3">Light</span>
+        <i class="bi bi-check ms-auto"></i>
+      </a>
+    </li>
+    <li>
+      <a class="dropdown-item d-flex align-items-center" data-snftt-luz="dark" href="#" aria-pressed="false">
+        <span>
+          <i class="bi bi-moon-stars" data-snftt-luz-icon="dark"></i>
+        </span>
+        <span class="ms-3">Dark</span>
+        <i class="bi bi-check ms-auto"></i>
+      </a>
+    </li>
+    <li>
+      <a class="dropdown-item current d-flex align-items-center" data-snftt-luz="default" href="#" aria-pressed="false">
+        <span>
+          <i class="bi bi-circle-half" data-snftt-luz-icon="default"></i>
+        </span>
+        <span class="ms-3">Automatic</span>
+        <i class="bi bi-check ms-auto"></i>
+      </a>
+    </li>
+  </ul>
+</li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+      
+    </header>
+
+    <div class="container-fluid flex-grow-1">
+      <div class="nftt-gutter nftt-page">
+        <aside class="nftt-sidebar ">
+          <div class="nftt-sidebar-content">
+            
+            <div class="title d-none d-xl-none">
+              <i class="bi bi-book"></i>&nbsp;&nbsp;<span>Index</span>
+            </div>
+            <div id="sidebar" tabindex="-1" class="offcanvas-xl offcanvas-start" aria-labelledby="nfttSidebarOffcanvasLabel">
+                <!-- sidebartemplate: "globaltoc.html" --><div class="offcanvas-header border-bottom">
+  <h5 class="offcanvas-title fw-bold" id="nfttSidebarOffcanvasLabel">
+    Index
+  </h5>
+  <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close" data-bs-target="#sidebar"></button>
+</div>
+
+<div class="offcanvas-body">
+  <nav class="toc" aria-label="Main menu">
+    <div class="mb-3 p-1 pb-4 border-bottom">
+      <input id="sidebar-filter" type="text" name="filter" class="form-control form-control-sm" placeholder="index filter" aria-label="index filter">
+    </div>
+    <p class="caption" role="heading"><span class="caption-text">Examples:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Timing comparisons with lacosmic and astroscrappy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Example.html">Example</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../autoapi/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../autoapi/dfcosmic/index.html">dfcosmic</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../autoapi/dfcosmic/core/index.html">dfcosmic.core</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../autoapi/dfcosmic/utils/index.html">dfcosmic.utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../csrc.html">CPU C++ Extensions (csrc)</a></li>
+</ul>
+
+  </nav>
+  <template data-toggle-item-template>
+    <button class="btn btn-sm btn-link toctree-expand" type="button">
+      <i class="bi bi-caret-right"></i>
+      <span class="visually-hidden">Toggle menu contents</span>
+    </button>
+  </template>
+</div>
+            </div>
+            
+          </div>
+        </aside>
+        <article id="content" class="nftt-content" role="main">
+          <div>
+            <nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="../index.html">Start</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Timing comparisons with lacosmic and astroscrappy</li>
+  </ol>
+</nav>
+    <section id="Timing-comparisons-with-lacosmic-and-astroscrappy">
+<h1>Timing comparisons with lacosmic and astroscrappy<a class="headerlink" href="#Timing-comparisons-with-lacosmic-and-astroscrappy" title="Link to this heading">¶</a></h1>
+<p>In this notebook, we compare dfcosmic (both CPU and GPU implementations) with <a class="reference external" href="https://github.com/larrybradley/lacosmic">lacosmic</a> and <a class="reference external" href="https://github.com/astropy/astroscrappy">astroscrappy</a>.</p>
+<p>These tests were run using a System76 Adder WS with a Intel® Core™ i9-14900HX × 32 and a NVIDIA GeForce RTX 4060 Laptop GPU.</p>
+<p>The code snippet for generating fake data was taken <strong>directly</strong> from <a class="reference external" href="https://github.com/astropy/astroscrappy/blob/main/astroscrappy/tests/fake_data.py">astroscrappy tests</a>; therefore, we thank them.</p>
+<p>The fake data is set to have the approximate size as a standard narrowband observation taken with Mothra (6000 x 4000).</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lacosmic.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">lacosmic</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astroscrappy</span><span class="w"> </span><span class="kn">import</span> <span class="n">detect_cosmics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dfcosmic</span><span class="w"> </span><span class="kn">import</span> <span class="n">lacosmic</span> <span class="k">as</span> <span class="n">df_lacosmic</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">threadpoolctl</span><span class="w"> </span><span class="kn">import</span> <span class="n">threadpool_limits</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">num_threads</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">16</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Make a simple Gaussian function for testing purposes</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">gaussian</span><span class="p">(</span><span class="n">image_shape</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">brightness</span><span class="p">,</span> <span class="n">fwhm</span><span class="p">):</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">image_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">image_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">x2d</span><span class="p">,</span> <span class="n">y2d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+    <span class="n">sig</span> <span class="o">=</span> <span class="n">fwhm</span> <span class="o">/</span> <span class="mf">2.35482</span>
+
+    <span class="n">normfactor</span> <span class="o">=</span> <span class="n">brightness</span> <span class="o">/</span> <span class="mf">2.0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">sig</span><span class="o">**-</span><span class="mf">2.0</span>
+    <span class="n">exponent</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">sig</span><span class="o">**-</span><span class="mf">2.0</span>
+    <span class="n">exponent</span> <span class="o">*=</span> <span class="p">(</span><span class="n">x2d</span> <span class="o">-</span> <span class="n">x0</span><span class="p">)</span> <span class="o">**</span> <span class="mf">2.0</span> <span class="o">+</span> <span class="p">(</span><span class="n">y2d</span> <span class="o">-</span> <span class="n">y0</span><span class="p">)</span> <span class="o">**</span> <span class="mf">2.0</span>
+
+    <span class="k">return</span> <span class="n">normfactor</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">exponent</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">make_fake_data</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">6000</span><span class="p">,</span> <span class="mi">4000</span><span class="p">)):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate fake data that can be used to test the detection and cleaning algorithms</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    imdata : numpy float array</span>
+<span class="sd">        Fake Image data</span>
+<span class="sd">    crmask : numpy boolean array</span>
+<span class="sd">        Boolean mask of locations of injected cosmic rays</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Set a seed so that the tests are repeatable</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
+
+    <span class="c1"># Create a simulated image to use in our tests</span>
+    <span class="n">imdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="c1"># Add sky and sky noise</span>
+    <span class="n">imdata</span> <span class="o">+=</span> <span class="mi">200</span>
+
+    <span class="n">psf_sigma</span> <span class="o">=</span> <span class="mf">3.5</span>
+
+    <span class="c1"># Add some fake sources</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">1001</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">1001</span><span class="p">)</span>
+        <span class="n">brightness</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">30000.0</span><span class="p">)</span>
+        <span class="n">imdata</span> <span class="o">+=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">imdata</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">brightness</span><span class="p">,</span> <span class="n">psf_sigma</span><span class="p">)</span>
+
+    <span class="c1"># Add the poisson noise</span>
+    <span class="n">imdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">poisson</span><span class="p">(</span><span class="n">imdata</span><span class="p">))</span>
+
+    <span class="c1"># Add readnoise</span>
+    <span class="n">imdata</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+
+    <span class="c1"># Add 100 fake cosmic rays</span>
+    <span class="n">cr_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">995</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">cr_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">995</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+    <span class="n">cr_brightnesses</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">30000.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+    <span class="n">imdata</span><span class="p">[</span><span class="n">cr_y</span><span class="p">,</span> <span class="n">cr_x</span><span class="p">]</span> <span class="o">+=</span> <span class="n">cr_brightnesses</span>
+    <span class="n">imdata</span> <span class="o">=</span> <span class="n">imdata</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;f4&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Make a mask where the detected cosmic rays should be</span>
+    <span class="n">crmask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">crmask</span><span class="p">[</span><span class="n">cr_y</span><span class="p">,</span> <span class="n">cr_x</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="n">imdata</span><span class="p">,</span> <span class="n">crmask</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Make fake data</span>
+<span class="n">imdata</span><span class="p">,</span> <span class="n">expected_crmask</span> <span class="o">=</span> <span class="n">make_fake_data</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<p>Run the code using our four options:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dfcosmic</span></code> on the CPU</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dfcosmic</span></code> on the GPU</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">astroscrappy</span></code> with <code class="docutils literal notranslate"><span class="pre">sepmed=True</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">astroscrappy</span></code> with <code class="docutils literal notranslate"><span class="pre">sepmed=False</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lacosmic</span></code></p></li>
+</ol>
+<p>Option 1: <code class="docutils literal notranslate"><span class="pre">dfcosmic</span></code> on the CPU</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dfcosmic_cpu</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">n_threads</span> <span class="ow">in</span> <span class="n">num_threads</span><span class="p">:</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">set_num_threads</span><span class="p">(</span><span class="n">n_threads</span><span class="p">)</span>
+    <span class="n">start_dfcosmic_cpu</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+    <span class="n">clean</span><span class="p">,</span> <span class="n">crmask</span> <span class="o">=</span> <span class="n">df_lacosmic</span><span class="p">(</span>
+        <span class="n">image</span><span class="o">=</span><span class="n">imdata</span><span class="p">,</span>
+        <span class="n">objlim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">sigfrac</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">sigclip</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+        <span class="n">gain</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">readnoise</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">niter</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">elapsed_dfcosmic_cpu</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_dfcosmic_cpu</span>
+    <span class="n">dfcosmic_cpu</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elapsed_dfcosmic_cpu</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dfcosmic_cpu_torch_only</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">n_threads</span> <span class="ow">in</span> <span class="n">num_threads</span><span class="p">:</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">set_num_threads</span><span class="p">(</span><span class="n">n_threads</span><span class="p">)</span>
+    <span class="n">start_dfcosmic_cpu_torch_only</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+    <span class="n">clean</span><span class="p">,</span> <span class="n">crmask</span> <span class="o">=</span> <span class="n">df_lacosmic</span><span class="p">(</span>
+        <span class="n">image</span><span class="o">=</span><span class="n">imdata</span><span class="p">,</span>
+        <span class="n">objlim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">sigfrac</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">sigclip</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+        <span class="n">gain</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">readnoise</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">niter</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">,</span>
+        <span class="n">use_cpp</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+
+    <span class="n">elapsed_dfcosmic_cpu_torch_only</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_dfcosmic_cpu_torch_only</span>
+    <span class="n">dfcosmic_cpu_torch_only</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elapsed_dfcosmic_cpu_torch_only</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Option 2: <code class="docutils literal notranslate"><span class="pre">dfcosmic</span></code> on the GPU</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dfcosmic_gpu</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">n_threads</span> <span class="ow">in</span> <span class="n">num_threads</span><span class="p">:</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">set_num_threads</span><span class="p">(</span><span class="n">n_threads</span><span class="p">)</span>
+    <span class="n">start_dfcosmic_gpu</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+    <span class="n">clean</span><span class="p">,</span> <span class="n">crmask</span> <span class="o">=</span> <span class="n">df_lacosmic</span><span class="p">(</span>
+        <span class="n">image</span><span class="o">=</span><span class="n">imdata</span><span class="p">,</span>
+        <span class="n">objlim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">sigfrac</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">sigclip</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+        <span class="n">gain</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">readnoise</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">niter</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">elapsed_dfcosmic_gpu</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_dfcosmic_gpu</span>
+    <span class="n">dfcosmic_gpu</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elapsed_dfcosmic_gpu</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Option 3: Astroscrappy with <code class="docutils literal notranslate"><span class="pre">sepmed=True</span></code></p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">astroscrappy_sepmed_true</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">n_threads</span> <span class="ow">in</span> <span class="n">num_threads</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">threadpool_limits</span><span class="p">(</span><span class="n">limits</span><span class="o">=</span><span class="n">n_threads</span><span class="p">):</span>
+        <span class="n">start_astroscrappy</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">detect_cosmics</span><span class="p">(</span><span class="n">imdata</span><span class="p">,</span> <span class="n">readnoise</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">gain</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">sigclip</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">sigfrac</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">objlim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sepmed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">elapsed_astroscrappy</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_astroscrappy</span>
+        <span class="n">astroscrappy_sepmed_true</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elapsed_astroscrappy</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Option 4: Astroscrappy with <code class="docutils literal notranslate"><span class="pre">sepmed=False</span></code></p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">astroscrappy_sepmed_false</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">n_threads</span> <span class="ow">in</span> <span class="n">num_threads</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">threadpool_limits</span><span class="p">(</span><span class="n">limits</span><span class="o">=</span><span class="n">n_threads</span><span class="p">):</span>
+        <span class="n">start_astroscrappy</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">detect_cosmics</span><span class="p">(</span><span class="n">imdata</span><span class="p">,</span> <span class="n">readnoise</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">gain</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">sigclip</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">sigfrac</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">objlim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sepmed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">elapsed_astroscrappy</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_astroscrappy</span>
+        <span class="n">astroscrappy_sepmed_false</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elapsed_astroscrappy</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Option 5: <code class="docutils literal notranslate"><span class="pre">lacosmic</span></code></p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lacosmic_results</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">n_threads</span> <span class="ow">in</span> <span class="n">num_threads</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">threadpool_limits</span><span class="p">(</span><span class="n">limits</span><span class="o">=</span><span class="n">n_threads</span><span class="p">):</span>
+        <span class="n">start_lacosmic</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="n">clean</span><span class="p">,</span> <span class="n">crmask</span> <span class="o">=</span> <span class="n">lacosmic</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">imdata</span><span class="p">,</span>
+            <span class="n">contrast</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">neighbor_threshold</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+            <span class="n">cr_threshold</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">effective_gain</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">readnoise</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="n">maxiter</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">elapsed_lacosmic</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_lacosmic</span>
+        <span class="n">lacosmic_results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elapsed_lacosmic</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING: AstropyDeprecationWarning: The lacosmic function is deprecated and will be removed in a future version. Use remove_cosmics instead. [warnings]
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+INFO: Iteration 1: Found 100 cosmic-ray pixels, Total: 100 [lacosmic.core]
+INFO: Iteration 1: Found 100 cosmic-ray pixels, Total: 100 [lacosmic.core]
+INFO: Iteration 1: Found 100 cosmic-ray pixels, Total: 100 [lacosmic.core]
+INFO: Iteration 1: Found 100 cosmic-ray pixels, Total: 100 [lacosmic.core]
+INFO: Iteration 1: Found 100 cosmic-ray pixels, Total: 100 [lacosmic.core]
+</pre></div></div>
+</div>
+<section id="Plot-of-times">
+<h2>Plot of times<a class="headerlink" href="#Plot-of-times" title="Link to this heading">¶</a></h2>
+<p>The plot will be broken down in the following manner:</p>
+<ul class="simple">
+<li><p>the x-axis shows the number of available threads</p></li>
+<li><p>the y-axis is the execution time in seconds</p></li>
+<li><p>the color indicates the option</p></li>
+</ul>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">colors</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;#2CA02C&#39;</span><span class="p">,</span>  <span class="c1"># Green</span>
+    <span class="s2">&quot;#0B47DF&quot;</span><span class="p">,</span>  <span class="c1"># Blue</span>
+    <span class="s1">&#39;#785EF0&#39;</span><span class="p">,</span>  <span class="c1"># Purple</span>
+    <span class="s1">&#39;#DC267F&#39;</span><span class="p">,</span>  <span class="c1"># Magenta</span>
+    <span class="s1">&#39;#FE6100&#39;</span><span class="p">,</span>  <span class="c1"># Orange</span>
+    <span class="s1">&#39;#FFB000&#39;</span><span class="p">,</span>  <span class="c1"># Yellow</span>
+<span class="p">]</span>
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">num_threads</span><span class="p">,</span> <span class="n">dfcosmic_cpu</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;dfcosmic (CPU &amp; c++)&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">num_threads</span><span class="p">,</span> <span class="n">dfcosmic_cpu_torch_only</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;dfcosmic (CPU)&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">num_threads</span><span class="p">,</span> <span class="n">dfcosmic_gpu</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;dfcosmic (GPU)&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">num_threads</span><span class="p">,</span> <span class="n">astroscrappy_sepmed_false</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;astroscrappy (sepmed=False)&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;-.&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">num_threads</span><span class="p">,</span> <span class="n">astroscrappy_sepmed_true</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;astroscrappy (sepmed=True)&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">num_threads</span><span class="p">,</span> <span class="n">lacosmic_results</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;lacosmic&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Number of Threads&#39;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Runtime (sec)&#39;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;comparison.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/demos_Comparison_18_0.png" src="../_images/demos_Comparison_18_0.png" />
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+</div>
+        </article>
+        <aside class="nftt-toc my-3">
+          
+          <div class="my-sm-1 my-lg-0 ps-xl-3 text-muted">
+            <button class="btn btn-link p-lg-0 mb-2 mb-lg-0 text-decoration-none nftt-toc-toggle d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#tocContents" aria-expanded="false" aria-controls="tocContents"
+            >On this page <i class="ms-2 bi bi-chevron-expand"></i></button>
+            <div class="title d-none d-lg-block">
+              <i class="bi bi-file-earmark-text"></i>&nbsp;&nbsp;<span class="small">On this page</span>
+            </div>
+            <div class="collapse nftt-toc-collapse" id="tocContents">
+              <nav id="TableOfContents">
+                <ul>
+<li><a class="reference internal" href="#">Timing comparisons with lacosmic and astroscrappy</a><ul>
+<li><a class="reference internal" href="#Plot-of-times">Plot of times</a></li>
+</ul>
+</li>
+</ul>
+
+              </nav>
+            </div>
+          </div>
+          
+        </aside>
+      </div>
+    </div>
+
+    <footer class="nftt-footer">
+      <nav id="paginator" class="py-4" aria-label="Documentation navigation">
+    <div class="container">
+      <ul class="pagination justify-content-between mb-0"><li class="d-flex page-item">
+            <a href="../index.html" class="d-flex px-5 align-items-end" rel="prev" aria-label="Previous page: dfcosmic documentation">
+              <span class="prev-page"><i class="bi bi-caret-left"></i></span>
+              <div class="d-none d-sm-flex flex-column">
+                <span class="text-small text-start text-muted">Previous</span>
+                <span class="underline">dfcosmic documentation</span>
+              </div>
+            </a>
+          </li>
+        <li class="d-flex page-item ms-auto">
+            <a href="Example.html" class="d-flex px-5 align-items-end" rel="next" aria-label="Next page: Example">
+              <div class="d-flex flex-column">
+                <span class="text-small text-end text-start text-muted">Next</span>
+                <span class="underline">Example</span>
+              </div>
+              <span class="next-page"><i class="bi bi-caret-right"></i></span>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </nav>
+
+      <div class="py-5 px-4 px-md-3">
+  <div class="container">
+    
+
+    <div class="row">
+      <div class="col-lg-12 text-center">
+        <a class="brand-text d-inline-flex align-items-center mb-2 text-decoration-none" href="/" aria-label="dfcosmic">
+          <span class="fs-6 fw-bold">dfcosmic</span>
+        </a>
+        
+          <ul class="list-unstyled small text-muted">
+            <li>2025, Carter Rhea, Pieter van Dokkum</li>
+          </ul>
+        
+        
+        <div class="built-with pt-2">
+          Built with <a href="http://sphinx-doc.org">Sphinx 8.1.3</a> and <a href="https://github.com/danirus/sphinx-nefertiti">Nefertiti 0.8.10</a>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+    </footer>
+    <script src="../_static/documentation_options.js?v=76e2d817"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=30646c52"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/docs-versions.js?v=08b0cbfb"></script>
+    <script src="../_static/sphinx-nefertiti.min.js?v=0d8c3777"></script>
+    <script src="../_static/bootstrap.bundle.min.js?v=647f0dd8"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  </body>
+</html>

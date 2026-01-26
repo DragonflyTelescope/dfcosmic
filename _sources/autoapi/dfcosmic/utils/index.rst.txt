@@ -1,0 +1,99 @@
+dfcosmic.utils
+==============
+
+.. py:module:: dfcosmic.utils
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   dfcosmic.utils.block_replicate_torch
+   dfcosmic.utils.convolve
+   dfcosmic.utils.median_filter_torch
+   dfcosmic.utils.median_filter_cpp_torch
+   dfcosmic.utils.dilation_pytorch
+   dfcosmic.utils.sigma_clip_pytorch
+   dfcosmic.utils.dilation_cpp_torch
+   dfcosmic.utils.cpp_median_available
+   dfcosmic.utils.cpp_dilation_available
+
+
+Module Contents
+---------------
+
+.. py:function:: block_replicate_torch(data: torch.Tensor, block_size: int | list[int], conserve_sum: bool = True) -> torch.Tensor
+
+   Upsample a data array by block replication.
+
+   Parameters
+   ----------
+   data : array-like
+       The data to be block replicated.
+
+   block_size : int or array-like (int)
+       The integer block size along each axis.  If ``block_size`` is a
+       scalar and ``data`` has more than one dimension, then
+       ``block_size`` will be used for for every axis.
+
+   conserve_sum : bool, optional
+       If `True` (the default) then the sum of the output
+       block-replicated data will equal the sum of the input ``data``.
+
+   Returns
+   -------
+   output : torch.Tensor
+       The block-replicated data. Note that when ``conserve_sum`` is
+       `True`, the dtype of the output array will be float.
+
+
+
+.. py:function:: convolve(image: torch.Tensor, kernel: torch.Tensor) -> torch.Tensor
+
+   Applies 2D convolution using spatial domain (direct convolution)
+   Parameters
+   ----------
+       image : torch.tensor
+           Input for convolution
+       kernel : torch.tensor
+           Kernel for convolution
+   Returns
+   -------
+       convolved image (torch.tensor)
+
+
+.. py:function:: median_filter_torch(image: torch.Tensor, kernel_size: int = 3) -> torch.Tensor
+
+   Applies a median filter using torch operations.
+
+
+.. py:function:: median_filter_cpp_torch(image: torch.Tensor, kernel_size: int = 3) -> torch.Tensor
+
+   Fast CPU median filter using the C++ extension.
+
+
+.. py:function:: dilation_pytorch(image: torch.Tensor, strel: torch.Tensor, origin: tuple[int, int] = (0, 0), border_value: float = 0)
+
+   Taken from https://stackoverflow.com/questions/56235733/is-there-a-tensor-operation-or-function-in-pytorch-that-works-like-cv2-dilate
+
+
+.. py:function:: sigma_clip_pytorch(data: torch.Tensor, sigma: tuple[float, float] | float = 3.0, maxiters: int = 10) -> tuple[torch.Tensor, dict]
+
+   Compute iterative sigma clipping (mimics IRAF iterstat)
+
+
+   Returns
+   -------
+   clipped_data : torch.Tensor
+       Data with outliers removed
+   stats : dict
+       Dictionary with 'median', 'mean', 'std', 'niter'
+
+
+.. py:function:: dilation_cpp_torch(image: torch.Tensor, strel_shape: tuple[int, int], origin: tuple[int, int] = (0, 0), border_value: float = 0.0) -> torch.Tensor
+
+.. py:function:: cpp_median_available() -> bool
+
+.. py:function:: cpp_dilation_available() -> bool
+
