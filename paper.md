@@ -62,7 +62,7 @@ The GPU used in this test was an NVIDIA GeForce RTX 5060 Ti 16GB while the CPU w
 
 ![\label{fig:comparison} Timing comparison of the many variants of cosmic ray removal codes.](demos/comparison.png)
 
-Although the performance gain with 2 or more threads may seem small compared with the overall runtime, even a minimal gain for each individual frame corresponds to a considerable gain when running the pipeline on several tens of thousands of frames nightly. 
+Although the performance gain with 2 or more threads may seem small compared with the overall runtime, even a minimal gain for each individual frame corresponds to a considerable gain when running the pipeline on several tens of thousands of frames nightly. We reiterate that `dfcosmic` always uses a true median (i.e. `sepmed=False`).
 
 
 # Software design

@@ -55,10 +55,16 @@ Additional parameters can be found in the API call to `lacosmic`.
 
 Timing Analysis
 ---------------
+
 .. image:: ./demos/comparison_dark.png
    :alt: Timing Analysis
    :width: 600px
    :align: center
+
+
+**Timing analysis** of `dfcosmic` versus `lacosmic` and `astroscrappy`. Note that `dfcosmic` exclusively uses a true median (i.e. `sepmed=False`).
+
+
 
 
 .. toctree::
