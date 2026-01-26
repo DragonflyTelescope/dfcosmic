@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61", "wheel", "torch>=1.9.0"]
+requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -25,7 +25,6 @@ classifiers = [
   "Intended Audience :: Science/Research",
   "Topic :: Scientific/Engineering :: Astronomy",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.8",
   "Operating System :: OS Independent",
 ]
 
@@ -42,9 +41,14 @@ docs = [
   "sphinx-autoapi>=2.0.0",
   "nbsphinx>=0.8.9",
   "ipykernel>=6.0.0",
-  "matplotlib>=3.4.0",
   "sphinx-copybutton==0.5.2",
   "sphinx-nefertiti==0.8.10",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3.4",
+  "pytest-cov>=6.0.0",
   "ruff>=0.14.7",
 ]
 
@@ -57,13 +61,6 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
-
-[dependency-groups]
-dev = [
-    "pytest>=8.3.4",
-    "pytest-cov>=6.0.0",
-]
 
 [tool.pytest.ini_options]
 addopts = [

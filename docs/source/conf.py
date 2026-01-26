@@ -57,7 +57,7 @@ autoapi_options = [
     "show-module-summary",
     "imported-members",
 ]
-
+autodoc_mock_imports = ["torch"]
 # Copy button settings (optional)
 copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "
 copybutton_prompt_is_regexp = True
