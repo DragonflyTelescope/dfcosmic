@@ -46,14 +46,16 @@ bibliography: dfcosmic.bib
 ---
 
 # Summary
-Astronomical images are far from pristine despite the best efforts of observers; they can include streaks from Earth-orbit satellites or pixel-sized inclusions from cosmic rays (CR); CRs are high-energy charged particles moving near the speed of light. A key step in the processing of astronomical images is the removal of these CRs. `dfcosmic` is a Python package utilizing PyTorch and native C++ code to optimize the detection of CRs on both the CPU and GPU in order to rapidly and reliably detect and remove CRs from raw astronomical images. 
+Astronomical images are far from pristine despite the best efforts of observers; they can include streaks from Earth-orbit satellites or pixel-sized inclusions from cosmic rays (CR); CRs are high-energy charged particles moving near the speed of light. A key step in the processing of astronomical images is the removal of these CRs. `dfcosmic` is a Python package utilizing PyTorch and native C++ code to optimize the detection of CRs on both the CPU and GPU in order to rapidly and reliably detect and remove CRs from raw astronomical images. `dfcosmic` is a direct python representation of the L.A.Cosmic algorithm originally developed in [@van_dokkum_cosmic-rays_2001]. 
 
 # Statement of need
-Although several implementations of L.A.Cosmic [@van_dokkum_cosmic-ray_2001] exist such as `lacosmic` [@bradley_larrybradleylacosmic_2025] and `astroscrappy` [@robitaille_astropyastroscrappy_2025], these implementations either deviate from the original algorithm in order to achieve computational gains or do not run fast enough for practical usage. In particular, the data reduction pipeline for the Modular Optical Telephoto Hyperspectral Robotic Array (MOTHRA) requires rapid cosmic ray identification and removal for tens of thousands of images every night using only a single core (2 threads) per frame. Importantly, experiments on the preliminary data taken by MOTHRA have demonstrated that it is crucial to use the original implementation (notably a true median filter rather than a separable median filter) in order to capture all the cosmic rays without accidentally removing bright stars. `dfcosmic` has already been adopted in the nightly reduction pipeline for MOTHRA.
+Although several implementations of L.A.Cosmic [@van_dokkum_cosmic-ray_2001] exist such as `lacosmic` [@bradley_larrybradleylacosmic_2025] and `astroscrappy` [@robitaille_astropyastroscrappy_2025], these implementations either deviate from the original algorithm in order to achieve computational gains or do not run fast enough for practical usage. Moreover, the results of these implementations differ from the original `IRAF` implementation. In particular, the data reduction pipeline for the Modular Optical Telephoto Hyperspectral Robotic Array (MOTHRA) requires rapid cosmic ray identification and removal for tens of thousands of images every night using only a single core (2 threads) per frame. Importantly, experiments on the preliminary data taken by MOTHRA have demonstrated that it is crucial to use the original implementation (notably a true median filter rather than a separable median filter) in order to capture all the cosmic rays without accidentally removing bright stars. `dfcosmic` has already been adopted in the nightly reduction pipeline for MOTHRA.
 
 
 # State of the field
-There currently exist other cosmic ray removal codes in Python based on the L.A.Cosmic [@van_dokkum_cosmic-ray_2001] algorithm; notably  `lacosmic` [@bradley_larrybradleylacosmic_2025] and `astroscrappy` [@robitaille_astropyastroscrappy_2025]. The nightly reduction of MOTHRA requires running L.A.Cosmic on tens of thousands of frames every day; therefore, it is necessary to have a fast, and reliable, implementation of the algorithm to reduce all the data in a reasonable amount of time. Moreover, although the current data reduction infrastructure only supports CPU computing, we wish to have a package that will eventually be able to run rapidly on a GPU. 
+Modern high frequency observatories are taking thousands of images each night; Therefore, it is necessary to have a fast, and reliable, implementation of the algorithm to reduce all the data in a reasonable amount of time.
+Although several methods for detecting CRs in astronomical images have been proposed (i.e. @zhang_deepcr_2020, @pych_fast_2003, @xu__cosmic-conn_2023), the most widely use algorithm is the L.A.Cosmic algorithm [@van_dokkum_cosmic-ray_2001].
+There currently exist other cosmic ray removal codes in Python based on the L.A.Cosmic algorithm; notably  `lacosmic` [@bradley_larrybradleylacosmic_2025] and `astroscrappy` [@robitaille_astropyastroscrappy_2025].  Moreover, although the current data reduction infrastructure only supports CPU computing, we wish to have a package that will eventually be able to run rapidly on a GPU. 
 
 In light of these considerations, we have developed `dfcosmic`. In order to demonstrate the speed benefits of using `dfcosmic`, we benchmark it against the `astroscrappy` and `lacosmic` implementations. Notably, `astroscrappy`'s default run configuration uses a separable median filter which is a non-negligible departure from the original algorithm in order to speed up the algorithm. We run `astroscrappy` in our benchmarking with and without the separable median filter active. We stress that the use of a separable median filter *can* result in the incorrect removal of cosmic rays by incorrectly classifying the center of near-saturated or saturated stars as cosmic rays. We show the results of the three different versions of `dfcosmic`: CPU with torch only, CPU with C++ optimization, and GPU. We discuss these three different versions in the software design section of this paper.
 
@@ -104,16 +106,16 @@ Furthermore, the user can supply the gain and readnoise. If a gain is not suppli
 # Results
 
 ## Example
-In order to showcase `dfcosmic`, we construct an example image that is 100x100 pixels containing two fake elliptical galaxies and 10 stars with Gaussian noise. We then add 10 cosmic rays. We subsequently run `dfcosmic` with the default parameters. In the image below (\autoref{fig:demo}), we show the clean mock image, the cosmic ray mask, the dirty mock image (clean mock image + cosmic rays), the `dfcosmic` image, and the `dfcosmic` mask. We see that the algorithm correctly detects all cosmic rays in the image; additionally, it incorrectly marks two noisy pixels at the boundary as cosmic rays. This is a known complication with the algorithm. However, these noisy pixels are replaced with a median of their neighboring pixels and thus do not change the noise properties of the image.
+In order to showcase `dfcosmic`, we apply it, along with `astroscrappy` and `lacosmic` implementations, to the original example from [@van_dokkum_cosmic-rays_2001] of the *HST* WFPC2 image of galaxy cluster MS 1137+67.
 
-![\label{fig:demo} Example of `dfcosmic` on a mock image containing fake elliptical galaxies, stars, and cosmic rays.](demos/example.png)
+![\label{fig:demo} HST* WFPC2 image of galaxy cluster MS 1137+67.](demos/example_hst.png)
 
 
 
 # AI usage disclosure
 Generative AI was used for two aspects of this project:
 
-1. Claude.ai was used to help write/augment the unit tests
+1. Claude.ai was used to help write/augment the unit tests and understand the original IRAF implementation.
 
 2. ChatGPT was used to write the C++ code for the dilation and median filter functions
 

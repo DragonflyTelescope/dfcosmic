@@ -29,7 +29,6 @@ exclude_patterns = []
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "sphinx_nefertiti"
-html_static_path = ["_static"]
 # Napoleon settings (for Google/NumPy style docstrings)
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True

@@ -6,7 +6,7 @@
 dfcosmic documentation
 ======================
 
-Welcome to the documentation for `dfcosmic` -- a PyTorch implementation of the LA Cosmic algorithm by `van Dokkum 2001 <https://ui.adsabs.harvard.edu/abs/2001PASP..113.1420V/abstract>`_.
+Welcome to the documentation for *dfcosmic* -- a PyTorch implementation of the LA Cosmic algorithm by `van Dokkum 2001 <https://ui.adsabs.harvard.edu/abs/2001PASP..113.1420V/abstract>`_.
 
 
 You can quickly run `dfcosmic` with the following:
@@ -33,7 +33,7 @@ There are three runtime options. We list them below in order of speed from the s
 
 1. CPU pure PyTorch: this implementation uses only PyTorch for all functions and can be called by adding the argument `use_cpp=False`.
 
-2. CPU Pytorch & C++: this implementation uses Pytorch combined with certain function implemented in C++ for speed optimizations. This is the default behavior when `device='cpu'`.
+2. CPU Pytorch & C++: this implementation uses Pytorch combined with the median filter implemented in C++ for speed optimizations. This is the default behavior when `device='cpu'`.
 
 3. GPU: this implementation uses PyTorch only and runs on the GPU. This runs when `device='cuda'` is set.
 
@@ -72,7 +72,7 @@ Timing Analysis
    :caption: Examples:
 
    demos/Comparison.ipynb
-   demos/Example.ipynb
+   demos/HST.ipynb
 
 .. toctree::
     :maxdepth: 2
