@@ -6,7 +6,6 @@ from dfcosmic.utils import (
     _process_block_inputs,
     block_replicate_torch,
     convolve,
-    dilation_pytorch,
     median_filter_torch,
     sigma_clip_pytorch,
 )
@@ -182,56 +181,6 @@ class TestMedianFilterTorch:
         result = median_filter_torch(image, kernel_size=3)
         assert torch.allclose(result, image)
 
-
-class TestDilationPytorch:
-    """Tests for dilation_pytorch function."""
-
-    def test_basic_dilation(self):
-        """Test basic dilation operation."""
-        image = torch.zeros((5, 5))
-        image[2, 2] = 1.0
-        strel = torch.zeros((3, 3))
-        result = dilation_pytorch(image, strel)
-        assert result.shape == image.shape
-        assert result[2, 2] >= 1.0
-
-    def test_preserves_shape(self):
-        """Test that dilation preserves image shape."""
-        image = torch.randn((10, 10))
-        strel = torch.zeros((3, 3))
-        result = dilation_pytorch(image, strel)
-        assert result.shape == image.shape
-
-    def test_border_value(self):
-        """Test custom border value."""
-        image = torch.zeros((5, 5))
-        strel = torch.zeros((3, 3))
-        result = dilation_pytorch(image, strel, border_value=1.0)
-        assert result.shape == image.shape
-
-    def test_custom_origin(self):
-        """Test with custom origin."""
-        image = torch.zeros((5, 5))
-        image[2, 2] = 1.0
-        strel = torch.zeros((3, 3))
-        result = dilation_pytorch(image, strel, origin=(1, 1))
-        assert result.shape == image.shape
-
-    def test_increases_values(self):
-        """Test that dilation generally increases or maintains values."""
-        image = torch.randn((5, 5)).abs()
-        strel = torch.zeros((3, 3))
-        result = dilation_pytorch(image, strel)
-        assert result.sum() >= image.sum()
-
-    def test_binary_image(self):
-        """Test with binary image."""
-        image = torch.zeros((7, 7))
-        image[3, 3] = 1.0
-        strel = torch.zeros((3, 3))
-        result = dilation_pytorch(image, strel)
-        assert result.shape == image.shape
-        assert result.max() >= 1.0
 
 
 class TestSigmaClipPytorch:
