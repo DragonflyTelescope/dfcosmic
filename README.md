@@ -66,7 +66,7 @@ If you are unsure of either the gain or the readnoise you can leave them blank o
 
 ## Simple Example
 
-![Example](demos/example.png)
+![Example](demos/example_hst.png)
 
 ## Timing Comparisons
 We compare our pytorch implementation running on either a CPU (torch), CPU (torch & c++) or GPU with two popular cosmic ray removal codes: [lacosmic](https://github.com/larrybradley/lacosmic) and [astroscrappy](https://github.com/astropy/astroscrappy).
