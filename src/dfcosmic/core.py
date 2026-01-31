@@ -108,6 +108,7 @@ def lacosmic(
 
     For best performance, use CUDA-enabled GPU by setting device='cuda'.
     """
+
     device = torch.device(device)
 
     use_cpp_median = use_cpp and device.type == "cpu" and cpp_median_available()
@@ -147,8 +148,6 @@ def lacosmic(
         else:
             median_filter_fn = median_filter_torch
 
-      
-
         with torch.no_grad():
             for iteration in range(niter):
                 if verbose:
@@ -162,10 +161,10 @@ def lacosmic(
                         print("Trying to determine gain automatically:")
                     elif verbose:
                         print("Improving gain estimate:")
-                    
-                    sky_level = sigma_clip_pytorch(clean_image, sigma=5, maxiters=10)[1][
-                        "median"
-                    ]
+
+                    sky_level = sigma_clip_pytorch(clean_image, sigma=5, maxiters=10)[
+                        1
+                    ]["median"]
                     med7 = median_filter_fn(clean_image, kernel_size=7)
                     residuals = clean_image - med7
                     del med7
@@ -176,13 +175,13 @@ def lacosmic(
                     ]
                     del abs_residuals
                     sig = 1.48 * mad
-                    
+
                     if verbose:
                         print(f"  Approximate sky level = {sky_level:.2f} ADU")
                         print(f"  Sigma of sky = {sig:.2f}")
                         print(f"  Estimated gain = {sky_level / (sig**2):.2f}")
                         print("")
-                    
+
                     if sig == 0:
                         raise ValueError(
                             "Gain determination failed - provide estimate of gain manually. "
@@ -220,8 +219,8 @@ def lacosmic(
                 del med5
 
                 # Step 3: Significance map
-                sigmap = temp / noise
-                del temp
+                temp /= noise
+                sigmap = temp
                 sigmap /= 2.0
                 sigmap -= median_filter_fn(sigmap, kernel_size=5)
 
@@ -262,22 +261,24 @@ def lacosmic(
 
                 # First grow: keep pixels whose (grown mask * sig_map) > sigclip
                 gfirstsel = convolve(firstsel, gkernel)
+                del firstsel
                 gfirstsel = (gfirstsel > 0.5).to(sigmap.dtype)
                 gfirstsel = gfirstsel * sigmap
                 gfirstsel = (gfirstsel > sigclip).to(sigmap.dtype)
 
                 # Second grow: threshold at sigcliplow
                 finalsel = convolve(gfirstsel, gkernel)
+                del gfirstsel
                 finalsel = (finalsel > 0.5).to(sigmap.dtype)
                 finalsel = finalsel * sigmap
                 finalsel = (finalsel > sigcliplow).to(sigmap.dtype)
                 del sigmap
 
-                # Count only NEW cosmic rays found in this iteration 
+                # Count only NEW cosmic rays found in this iteration
                 new_crs = (~final_crmask).to(finalsel.dtype) * finalsel
                 npix = new_crs.sum().item()
 
-                del gfirstsel, firstsel, new_crs
+                del new_crs
 
                 if npix == 0:
                     if finalsel.sum().item() > 0:
@@ -299,7 +300,7 @@ def lacosmic(
                 tmp = median_filter_fn(tmp, kernel_size=5)
                 # Only use the median at CR locations
                 clean_image[final_crmask] = tmp[final_crmask]
-                
+
                 del tmp, finalsel, noise
 
         return clean_image.cpu().numpy(), final_crmask.cpu().numpy()
