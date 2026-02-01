@@ -39,7 +39,6 @@ def _get_kernels(device: torch.device, dtype: torch.dtype):
         [[0, -1, 0], [-1, 4, -1], [0, -1, 0]], dtype=dtype, device=device
     )
     strel = torch.ones((3, 3), device=device, dtype=dtype)
-
     cached = (block_size_tuple, block_size_tensor, laplacian_kernel, strel)
     _KERNEL_CACHE[key] = cached
     return cached
@@ -57,6 +56,7 @@ def lacosmic(
     cpu_threads: int | None = None,
     use_cpp: bool = True,
     verbose: bool = False,
+    rss_debug: bool = False,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Remove cosmic rays from an image using the LA Cosmic algorithm by Pieter van Dokkum.
@@ -87,6 +87,8 @@ def lacosmic(
         Boolean to use cpp optimized median filter and dilation algorithms. Default is True.
     verbose : bool
         Print iteration progress. Default is False.
+    rss_debug : bool
+        Print RSS memory at key steps. Default is False.
 
     Returns
     -------
@@ -139,7 +141,6 @@ def lacosmic(
         del image_t
 
         final_crmask = torch.zeros(clean_image.shape, dtype=torch.bool, device=device)
-
         if device.type == "cpu":
             torch.backends.mkldnn.enabled = True
             median_filter_fn = (

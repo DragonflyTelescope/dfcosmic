@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from astroscrappy import detect_cosmics
-from lacosmic.core import lacosmic
 from threadpoolctl import threadpool_limits
 
 from dfcosmic import lacosmic as df_lacosmic

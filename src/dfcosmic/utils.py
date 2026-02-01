@@ -52,28 +52,94 @@ def block_replicate_torch(
     data, block_size = _process_block_inputs(data, block_size)
 
     if data.ndim == 2:
-        data = data.repeat_interleave(block_size[0], dim=0).repeat_interleave(
-            block_size[1], dim=1
-        )
+        h, w = data.shape
+        bh, bw = int(block_size[0]), int(block_size[1])
+
+        chunk_size = 128
+        # Pre-allocate output tensor
+        output = torch.empty(h * bh, w * bw, dtype=data.dtype, device=data.device)
+        # Process in chunks
+        for i in range(0, h, chunk_size):
+            i_end = min(i + chunk_size, h)
+            chunk = data[i:i_end, :]
+            # Replicate this chunk
+            chunk_rep = chunk.repeat_interleave(bh, dim=0).repeat_interleave(bw, dim=1)
+            # Place in output
+            output[i * bh : i_end * bh, :] = chunk_rep
+            # Free memory
+            del chunk_rep
+
     else:
         for i in range(data.ndim):
-            data = torch.repeat_interleave(data, block_size[i], dim=i)
+            data = data.repeat_interleave(int(block_size[i]), dim=i)
 
     if conserve_sum:
-        data = data / torch.prod(block_size)
+        output = output / torch.prod(block_size).float()
 
-    return data
+    return output if data.ndim == 2 else data
 
 
-def convolve(image: torch.Tensor, kernel: torch.Tensor) -> torch.Tensor:
-    image_4d = image.unsqueeze(0).unsqueeze(0)
-    kernel_4d = kernel.unsqueeze(0).unsqueeze(0)
-
+def convolve_chunked(
+    image: torch.Tensor, kernel: torch.Tensor, chunk_size: int = 512
+) -> torch.Tensor:
+    """Memory-efficient chunked convolution"""
+    h, w = image.shape
     pad_h = kernel.shape[0] // 2
     pad_w = kernel.shape[1] // 2
 
-    result = F.conv2d(image_4d, kernel_4d, padding=(pad_h, pad_w))
-    return result.squeeze(0).squeeze(0)
+    # Pre-allocate output
+    output = torch.empty_like(image)
+
+    # Prepare kernel
+    kernel_4d = kernel.unsqueeze(0).unsqueeze(0)
+
+    # Pad entire image once
+    image_padded = F.pad(image, (pad_w, pad_w, pad_h, pad_h), mode="constant", value=0)
+
+    # Process in chunks
+    for i in range(0, h, chunk_size):
+        i_end = min(i + chunk_size, h)
+
+        # Extract chunk with padding
+        chunk = image_padded[i : i_end + 2 * pad_h, :].unsqueeze(0).unsqueeze(0)
+
+        # Convolve
+        result = F.conv2d(chunk, kernel_4d, padding=0)
+        output[i:i_end, :] = result.squeeze(0).squeeze(0)
+
+        del chunk, result
+
+    return output
+
+
+def convolve(
+    image: torch.Tensor, kernel: torch.Tensor, chunk_size: int = 512
+) -> torch.Tensor:
+    if image.numel() < 1000 * 1000:  # Small images, use direct method
+        image_4d = image.unsqueeze(0).unsqueeze(0)
+        kernel_4d = kernel.unsqueeze(0).unsqueeze(0)
+        pad_h = kernel.shape[0] // 2
+        pad_w = kernel.shape[1] // 2
+        result = F.conv2d(image_4d, kernel_4d, padding=(pad_h, pad_w))
+        return result.squeeze(0).squeeze(0)
+
+    # Large images - use chunked processing
+    h, w = image.shape
+    pad_h = kernel.shape[0] // 2
+    pad_w = kernel.shape[1] // 2
+
+    output = torch.empty_like(image)
+    kernel_4d = kernel.unsqueeze(0).unsqueeze(0)
+    image_padded = F.pad(image, (pad_w, pad_w, pad_h, pad_h), mode="constant", value=0)
+
+    for i in range(0, h, chunk_size):
+        i_end = min(i + chunk_size, h)
+        chunk = image_padded[i : i_end + 2 * pad_h, :].unsqueeze(0).unsqueeze(0)
+        result = F.conv2d(chunk, kernel_4d, padding=0)
+        output[i:i_end, :] = result.squeeze(0).squeeze(0)
+        del chunk, result
+
+    return output
 
 
 def median_filter_torch(
