@@ -46,7 +46,7 @@ bibliography: dfcosmic.bib
 ---
 
 # Summary
-Astronomical images are far from pristine despite the best efforts of observers; they can include streaks from Earth-orbit satellites or pixel-sized inclusions from cosmic rays (CR); CRs are high-energy charged particles moving near the speed of light. A key step in the processing of astronomical images is the removal of these CRs. `dfcosmic` is a Python package utilizing PyTorch and native C++ code to optimize the detection of CRs on both the CPU and GPU in order to rapidly and reliably detect and remove CRs from raw astronomical images. `dfcosmic` is a direct python representation of the L.A.Cosmic algorithm originally developed in [@van_dokkum_cosmic-rays_2001]. 
+Astronomical images are far from pristine despite the best efforts of observers; they can include streaks from Earth-orbit satellites or pixel-sized inclusions from cosmic rays (CR); CRs are high-energy charged particles moving near the speed of light. A key step in the processing of astronomical images is the removal of these CRs. `dfcosmic` is a Python package utilizing PyTorch and native C++ code to optimize the detection of CRs on both the CPU and GPU in order to rapidly and reliably detect and remove CRs from raw astronomical images. `dfcosmic` is a direct python representation of the L.A.Cosmic algorithm originally developed in [@van_dokkum_cosmic-ray_2001]. 
 
 # Statement of need
 Although several implementations of L.A.Cosmic [@van_dokkum_cosmic-ray_2001] exist such as `lacosmic` [@bradley_larrybradleylacosmic_2025] and `astroscrappy` [@robitaille_astropyastroscrappy_2025], these implementations either deviate from the original algorithm in order to achieve computational gains or do not run fast enough for practical usage. Moreover, the results of these implementations differ from the original `IRAF` implementation. In particular, the data reduction pipeline for the Modular Optical Telephoto Hyperspectral Robotic Array (MOTHRA) requires rapid cosmic ray identification and removal for tens of thousands of images every night using only a single core (2 threads) per frame. Importantly, experiments on the preliminary data taken by MOTHRA have demonstrated that it is crucial to use the original implementation (notably a true median filter rather than a separable median filter) in order to capture all the cosmic rays without accidentally removing bright stars. `dfcosmic` has already been adopted in the nightly reduction pipeline for MOTHRA.
@@ -117,7 +117,7 @@ Generative AI was used for two aspects of this project:
 
 1. Claude.ai was used to help write/augment the unit tests and understand the original IRAF implementation.
 
-2. ChatGPT was used to write the C++ code for the dilation and median filter functions
+2. ChatGPT was used to write the C++ code for the median filter function
 
 All code produced by AI was manually inspected for correctness.
 
