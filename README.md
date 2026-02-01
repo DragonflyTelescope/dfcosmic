@@ -96,6 +96,9 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 5. Open a Pull Request
 
 ## Citation
+If you use this package, please include a reference to the GitHub repository and the following Zenodo DOI: 10.5281/zenodo.18451251
+
+
 
 ## License
 The License for all past and present versions is the GPL-3.0.
