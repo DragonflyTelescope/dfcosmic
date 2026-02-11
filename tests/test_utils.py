@@ -1,4 +1,3 @@
-import numpy as np
 import pytest
 import torch
 
@@ -180,7 +179,6 @@ class TestMedianFilterTorch:
         image = torch.ones((5, 5)) * 5.0
         result = median_filter_torch(image, kernel_size=3)
         assert torch.allclose(result, image)
-
 
 
 class TestSigmaClipPytorch:

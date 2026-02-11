@@ -17,8 +17,6 @@ except Exception:
     _CPP_MEDIAN_AVAILABLE = False
 
 try:
-    import dilation_cpp
-
     _CPP_DILATION_AVAILABLE = not _DISABLE_CPP
 except Exception:
     _CPP_DILATION_AVAILABLE = False
@@ -101,8 +99,6 @@ def median_filter_torch(
     filtered, _ = unfolded.median(dim=0)
     return filtered
 
-    
-
 
 def median_filter_cpp_torch(
     image: torch.Tensor,
@@ -128,7 +124,6 @@ def median_filter_cpp_torch(
         image = image.contiguous()
 
     return median_filter_cpp.median_filter_cpu(image, kernel_size)
-
 
 
 def sigma_clip_pytorch(
@@ -167,8 +162,5 @@ def sigma_clip_pytorch(
     return data, stats
 
 
-
-
 def cpp_median_available() -> bool:
     return _CPP_MEDIAN_AVAILABLE
-
