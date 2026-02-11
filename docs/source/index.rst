@@ -6,6 +6,10 @@
 dfcosmic documentation
 ======================
 
+.. image:: https://zenodo.org/badge/1109261439.svg
+  :target: https://doi.org/10.5281/zenodo.18451350
+
+
 Welcome to the documentation for *dfcosmic* -- a PyTorch implementation of the LA Cosmic algorithm by `van Dokkum 2001 <https://ui.adsabs.harvard.edu/abs/2001PASP..113.1420V/abstract>`_.
 
 

@@ -46,8 +46,12 @@ bibliography: dfcosmic.bib
 ---
 
 # Summary
+<<<<<<< HEAD
 
 Astronomical images often show shar features that are caused by cosmic ray (CR) hits, hot pixels, or non-Gaussian noise. L.A.Cosmic [@van_dokkum_cosmic-ray_2001] is a widely used edge detection algorithm that identifies and replaces such features. Here we describe `dfcosmic`, a direct python port of L.A.Cosmic utilizing PyTorch and C++ to enable efficient performance on both CPUs and GPUs. The code was developed for the MOTHRA array, which is projected to produce more than 1000 large format CMOS images every $\sim$15 minutes. Compared to previous pyhton implementations, `dfcosmic` achieves a speed gain of at least 20%.
+=======
+Astronomical images are far from pristine despite the best efforts of observers; they can include streaks from Earth-orbit satellites or pixel-sized inclusions from cosmic rays (CR); CRs are high-energy charged particles moving near the speed of light. A key step in the processing of astronomical images is the removal of these CRs. `dfcosmic` is a Python package utilizing PyTorch and native C++ code to optimize the detection of CRs on both the CPU and GPU in order to rapidly and reliably detect and remove CRs from raw astronomical images. `dfcosmic` is a direct python representation of the L.A.Cosmic algorithm originally developed in [@van_dokkum_cosmic-ray_2001]. 
+>>>>>>> 7558f8d845fb6cca739ac2777dd783d0e53c98a0
 
 # Statement of need
 The Modular Optical Telephoto Hyperspectral Robotic Array (MOTHRA) uses CMOS sensors rather than traiditional CCds. Modern CMOS detectors have extraordinarily low noise but suffer from a relatively high number of hot pixels and non-Gaussian noise ("salt-and-pepper"; []).
@@ -119,7 +123,7 @@ Generative AI was used for two aspects of this project:
 
 1. Claude.ai was used to help write/augment the unit tests and understand the original IRAF implementation.
 
-2. ChatGPT was used to write the C++ code for the dilation and median filter functions
+2. ChatGPT was used to write the C++ code for the median filter function
 
 All code produced by AI was manually inspected for correctness.
 
