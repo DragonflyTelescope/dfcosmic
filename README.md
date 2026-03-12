@@ -66,6 +66,20 @@ clean_image, crmask = lacosmic(
 
 If you are unsure of either the gain or the readnoise you can leave them blank or set to 0. If so, then the gain will be estimated at each iteration.
 
+## Memory-Constrained CPU Runners
+
+On small CPU runners, PyTorch CPU convolutions can request a large temporary workspace. `dfcosmic` supports two environment variables to force safer behavior:
+
+```bash
+export DFCOSMIC_CONVOLVE_DIRECT_MAX_NUMEL=0
+export DFCOSMIC_MAX_MEMORY_MB=2048
+```
+
+- `DFCOSMIC_CONVOLVE_DIRECT_MAX_NUMEL=0` forces CPU convolution onto the chunked path.
+- `DFCOSMIC_MAX_MEMORY_MB=2048` reduces chunk sizes in the main memory-heavy CPU steps to fit a rough 2 GB workspace budget.
+
+For the tightest runners, also set `cpu_threads=1` when calling `lacosmic(...)`.
+
 ## Simple Example
 
 ![Example](demos/example_hst.png)

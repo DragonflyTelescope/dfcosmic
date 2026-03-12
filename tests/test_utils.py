@@ -3,6 +3,7 @@ import torch
 
 import dfcosmic.utils as utils
 from dfcosmic.utils import (
+    _budgeted_chunk_rows,
     _process_block_inputs,
     block_replicate_torch,
     convolve,
@@ -182,6 +183,58 @@ class TestConvolve:
         result = convolve(image, kernel)
 
         assert result.shape == image.shape
+
+
+class TestMemoryBudgetHelpers:
+    """Tests for memory-budget driven chunk sizing."""
+
+    def test_budgeted_chunk_rows_without_env_uses_default(self, monkeypatch):
+        monkeypatch.delenv("DFCOSMIC_MAX_MEMORY_MB", raising=False)
+
+        rows = _budgeted_chunk_rows(
+            width=1024,
+            dtype=torch.float32,
+            default_rows=256,
+            bytes_per_row_multiplier=4.0,
+        )
+
+        assert rows == 256
+
+    def test_budgeted_chunk_rows_respects_budget(self, monkeypatch):
+        monkeypatch.setenv("DFCOSMIC_MAX_MEMORY_MB", "1")
+
+        rows = _budgeted_chunk_rows(
+            width=1024,
+            dtype=torch.float32,
+            default_rows=256,
+            bytes_per_row_multiplier=4.0,
+        )
+
+        assert 1 <= rows < 256
+
+    def test_budgeted_chunk_rows_invalid_env_uses_default(self, monkeypatch):
+        monkeypatch.setenv("DFCOSMIC_MAX_MEMORY_MB", "invalid")
+
+        rows = _budgeted_chunk_rows(
+            width=1024,
+            dtype=torch.float32,
+            default_rows=256,
+            bytes_per_row_multiplier=4.0,
+        )
+
+        assert rows == 256
+
+    def test_budgeted_chunk_rows_clamps_to_minimum_one(self, monkeypatch):
+        monkeypatch.setenv("DFCOSMIC_MAX_MEMORY_MB", "0.000001")
+
+        rows = _budgeted_chunk_rows(
+            width=4096,
+            dtype=torch.float32,
+            default_rows=256,
+            bytes_per_row_multiplier=12.0,
+        )
+
+        assert rows == 1
 
 
 class TestMedianFilterTorch:

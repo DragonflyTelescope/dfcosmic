@@ -9,6 +9,7 @@ _DISABLE_CPP = os.environ.get("DFCOSMIC_DISABLE_CPP", "").lower() in {
     "yes",
 }
 _DEFAULT_CONVOLVE_DIRECT_MAX_NUMEL = 262_144
+_DEFAULT_MEMORY_BUDGET_MARGIN = 0.8
 
 
 def _rss_debug_enabled() -> bool:
@@ -45,6 +46,37 @@ def _convolve_direct_max_numel() -> int:
     except ValueError:
         return _DEFAULT_CONVOLVE_DIRECT_MAX_NUMEL
     return max(0, value)
+
+
+def _memory_budget_mb() -> float | None:
+    raw = os.environ.get("DFCOSMIC_MAX_MEMORY_MB")
+    if raw is None:
+        return None
+    try:
+        value = float(raw)
+    except ValueError:
+        return None
+    if value <= 0:
+        return None
+    return value
+
+
+def _budgeted_chunk_rows(
+    *,
+    width: int,
+    dtype: torch.dtype,
+    default_rows: int,
+    bytes_per_row_multiplier: float,
+) -> int:
+    budget_mb = _memory_budget_mb()
+    if budget_mb is None:
+        return max(1, int(default_rows))
+
+    element_size = torch.tensor((), dtype=dtype).element_size()
+    bytes_per_row = max(1, int(width * element_size * bytes_per_row_multiplier))
+    usable_budget = int(budget_mb * 1024 * 1024 * _DEFAULT_MEMORY_BUDGET_MARGIN)
+    budget_rows = max(1, usable_budget // bytes_per_row)
+    return max(1, min(int(default_rows), budget_rows))
 
 
 try:
@@ -130,7 +162,14 @@ def laplacian_pool_chunked(
     _log_rss("utils.laplacian_pool_chunked start")
     h, w = image.shape
     output = torch.empty_like(image)
-    core_chunk_rows = max(1, int(chunk_size))
+    # Approximate workspace per core row: input slice + replicated slice +
+    # convolution output + pooled output. Keep this conservative for small runners.
+    core_chunk_rows = _budgeted_chunk_rows(
+        width=w,
+        dtype=image.dtype,
+        default_rows=chunk_size,
+        bytes_per_row_multiplier=12.0,
+    )
 
     for i in range(0, h, core_chunk_rows):
         i_end = min(i + core_chunk_rows, h)
@@ -165,6 +204,12 @@ def convolve_chunked(
     h, w = image.shape
     pad_h = kernel.shape[0] // 2
     pad_w = kernel.shape[1] // 2
+    chunk_rows = _budgeted_chunk_rows(
+        width=w + 2 * pad_w,
+        dtype=image.dtype,
+        default_rows=chunk_size,
+        bytes_per_row_multiplier=4.0,
+    )
 
     # Pre-allocate output
     output = torch.empty_like(image)
@@ -173,8 +218,8 @@ def convolve_chunked(
     kernel_4d = kernel.unsqueeze(0).unsqueeze(0)
 
     # Process in chunks
-    for i in range(0, h, chunk_size):
-        i_end = min(i + chunk_size, h)
+    for i in range(0, h, chunk_rows):
+        i_end = min(i + chunk_rows, h)
         src_y0 = max(0, i - pad_h)
         src_y1 = min(h, i_end + pad_h)
         pad_top = max(0, pad_h - i)
