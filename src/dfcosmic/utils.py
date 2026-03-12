@@ -105,6 +105,46 @@ def block_replicate_torch(
     return output if data.ndim == 2 else data
 
 
+def laplacian_pool_chunked(
+    image: torch.Tensor,
+    block_size: torch.Tensor,
+    laplacian_kernel: torch.Tensor,
+    chunk_size: int = 256,
+) -> torch.Tensor:
+    """
+    Exact chunked implementation of the LA Cosmic subsampled Laplacian step:
+    2x block replication -> Laplacian convolution -> clamp(min=0) -> 2x2 average pool.
+    """
+    _log_rss("utils.laplacian_pool_chunked start")
+    h, w = image.shape
+    output = torch.empty_like(image)
+    core_chunk_rows = max(1, int(chunk_size))
+
+    for i in range(0, h, core_chunk_rows):
+        i_end = min(i + core_chunk_rows, h)
+        src_y0 = max(0, i - 1)
+        src_y1 = min(h, i_end + 1)
+        core_offset = i - src_y0
+        core_rows = i_end - i
+
+        image_chunk = image[src_y0:src_y1, :]
+        replicated = block_replicate_torch(image_chunk, block_size, conserve_sum=False)
+        conv = convolve(replicated, laplacian_kernel)
+        conv.clamp_(min=0)
+        pooled = F.avg_pool2d(
+            conv.unsqueeze(0).unsqueeze(0),
+            kernel_size=(int(block_size[0]), int(block_size[1])),
+        )[0, 0]
+
+        output[i:i_end, :] = pooled[core_offset : core_offset + core_rows, :]
+        if i == 0:
+            _log_rss("utils.laplacian_pool_chunked after first chunk")
+        del replicated, conv, pooled
+
+    _log_rss("utils.laplacian_pool_chunked before return")
+    return output
+
+
 def convolve_chunked(
     image: torch.Tensor, kernel: torch.Tensor, chunk_size: int = 256
 ) -> torch.Tensor:

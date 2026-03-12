@@ -4,12 +4,11 @@ from time import perf_counter
 
 import numpy as np
 import torch
-from torch.nn.functional import avg_pool2d
 
 from dfcosmic.utils import (
-    block_replicate_torch,
     convolve,
     cpp_median_available,
+    laplacian_pool_chunked,
     median_filter_cpp_torch,
     median_filter_torch,
     sigma_clip_pytorch,
@@ -240,12 +239,11 @@ def lacosmic(
                         print("")
 
                     # Step 1: Laplacian detection
-                    temp = block_replicate_torch(
-                        clean_image, block_size_tensor, conserve_sum=False
+                    temp = laplacian_pool_chunked(
+                        clean_image,
+                        block_size_tensor,
+                        laplacian_kernel,
                     )
-                    temp = convolve(temp, laplacian_kernel)
-                    temp.clamp_(min=0)
-                    temp = avg_pool2d(temp[None, None, :, :], block_size_tuple)[0, 0]
                     if rss_debug:
                         _log_rss(f"iter {iteration + 1} after laplacian detection")
 
