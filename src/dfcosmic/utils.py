@@ -8,6 +8,7 @@ _DISABLE_CPP = os.environ.get("DFCOSMIC_DISABLE_CPP", "").lower() in {
     "true",
     "yes",
 }
+_DEFAULT_CONVOLVE_DIRECT_MAX_NUMEL = 262_144
 
 
 def _rss_debug_enabled() -> bool:
@@ -33,6 +34,17 @@ def _log_rss(label: str) -> None:
         print(f"[rss] {label}: unavailable")
     else:
         print(f"[rss] {label}: {rss_mb:.1f} MiB")
+
+
+def _convolve_direct_max_numel() -> int:
+    raw = os.environ.get("DFCOSMIC_CONVOLVE_DIRECT_MAX_NUMEL")
+    if raw is None:
+        return _DEFAULT_CONVOLVE_DIRECT_MAX_NUMEL
+    try:
+        value = int(raw)
+    except ValueError:
+        return _DEFAULT_CONVOLVE_DIRECT_MAX_NUMEL
+    return max(0, value)
 
 
 try:
@@ -192,7 +204,12 @@ def convolve(
     image: torch.Tensor, kernel: torch.Tensor, chunk_size: int = 512
 ) -> torch.Tensor:
     _log_rss("utils.convolve start")
-    if image.numel() < 1000 * 1000:  # Small images, use direct method
+    # oneDNN/MKL-backed CPU conv2d can request a large temporary workspace on
+    # memory-constrained runners, so keep the direct path limited and tunable.
+    use_direct = (
+        image.device.type != "cpu" or image.numel() <= _convolve_direct_max_numel()
+    )
+    if use_direct:
         image_4d = image.unsqueeze(0).unsqueeze(0)
         kernel_4d = kernel.unsqueeze(0).unsqueeze(0)
         pad_h = kernel.shape[0] // 2
@@ -201,35 +218,7 @@ def convolve(
         _log_rss("utils.convolve small before return")
         return result.squeeze(0).squeeze(0)
 
-    # Large images - use chunked processing
-    h, w = image.shape
-    pad_h = kernel.shape[0] // 2
-    pad_w = kernel.shape[1] // 2
-
-    output = torch.empty_like(image)
-    kernel_4d = kernel.unsqueeze(0).unsqueeze(0)
-    for i in range(0, h, chunk_size):
-        i_end = min(i + chunk_size, h)
-        src_y0 = max(0, i - pad_h)
-        src_y1 = min(h, i_end + pad_h)
-        pad_top = max(0, pad_h - i)
-        pad_bottom = max(0, i_end + pad_h - h)
-
-        chunk = image[src_y0:src_y1, :].unsqueeze(0).unsqueeze(0)
-        chunk = F.pad(
-            chunk,
-            (pad_w, pad_w, pad_top, pad_bottom),
-            mode="constant",
-            value=0,
-        )
-        if i == 0:
-            _log_rss("utils.convolve after first chunk pad")
-        result = F.conv2d(chunk, kernel_4d, padding=0)
-        output[i:i_end, :] = result.squeeze(0).squeeze(0)
-        del chunk, result
-
-    _log_rss("utils.convolve before return")
-    return output
+    return convolve_chunked(image, kernel, chunk_size=chunk_size)
 
 
 def median_filter_torch(

@@ -1,6 +1,7 @@
 import pytest
 import torch
 
+import dfcosmic.utils as utils
 from dfcosmic.utils import (
     _process_block_inputs,
     block_replicate_torch,
@@ -144,6 +145,43 @@ class TestConvolve:
         kernel = torch.randn((3, 3), dtype=torch.float32)
         result = convolve(image, kernel)
         assert result.dtype == torch.float32
+
+    def test_env_forces_chunked_cpu_path(self, monkeypatch):
+        """Test that CPU convolution can be forced onto the chunked path."""
+        image = torch.randn((10, 10), dtype=torch.float32)
+        kernel = torch.zeros((3, 3), dtype=torch.float32)
+        kernel[1, 1] = 1.0
+
+        monkeypatch.setenv("DFCOSMIC_CONVOLVE_DIRECT_MAX_NUMEL", "0")
+
+        called = {"chunked": False}
+
+        def fake_conv2d(*args, **kwargs):
+            raise AssertionError("direct conv2d path should not be used")
+
+        def fake_chunked(chunk_image, chunk_kernel, chunk_size=512):
+            called["chunked"] = True
+            return chunk_image.clone()
+
+        monkeypatch.setattr(utils.F, "conv2d", fake_conv2d)
+        monkeypatch.setattr(utils, "convolve_chunked", fake_chunked)
+
+        result = convolve(image, kernel)
+
+        assert called["chunked"] is True
+        assert torch.equal(result, image)
+
+    def test_invalid_env_uses_default_threshold(self, monkeypatch):
+        """Test that invalid env input falls back to the default threshold."""
+        image = torch.randn((10, 10), dtype=torch.float32)
+        kernel = torch.zeros((3, 3), dtype=torch.float32)
+        kernel[1, 1] = 1.0
+
+        monkeypatch.setenv("DFCOSMIC_CONVOLVE_DIRECT_MAX_NUMEL", "invalid")
+
+        result = convolve(image, kernel)
+
+        assert result.shape == image.shape
 
 
 class TestMedianFilterTorch:
