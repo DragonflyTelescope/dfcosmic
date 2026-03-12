@@ -106,4 +106,4 @@ If you use this package, please include a reference to the GitHub repository and
 The License for all past and present versions is the GPL-3.0.
 
 ## AI Disclosure
-Claude code was used to help with the unit tests *only*. ChatGPT was used to create *only* the c++ code for the median filter and dilation - these were thoroughly reviewed by the authors.
+Claude code was used to help with the unit tests *only*. CodeX was used to create *only* the c++ code for the median filter and make the code more memory efficient. Every line of code was manually inspected.
