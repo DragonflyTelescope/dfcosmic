@@ -8,7 +8,7 @@ from threadpoolctl import threadpool_limits
 
 from dfcosmic import lacosmic as df_lacosmic
 
-num_threads = [1, 4]
+num_threads = [1, 2, 4, 8, 16]
 
 
 # Make a simple Gaussian function for testing purposes
