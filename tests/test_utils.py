@@ -12,6 +12,28 @@ from dfcosmic.utils import (
 )
 
 
+def _median_filter_reference(
+    image: torch.Tensor, kernel_size: int, zloreject: float | None = None
+) -> torch.Tensor:
+    h, w = image.shape
+    pad = kernel_size // 2
+    image_padded = torch.nn.functional.pad(
+        image.unsqueeze(0).unsqueeze(0), (pad, pad, pad, pad), mode="replicate"
+    )
+    unfolded = torch.nn.functional.unfold(image_padded, kernel_size, stride=1)
+    unfolded = unfolded.view(1, kernel_size * kernel_size, h, w)
+    if zloreject is not None:
+        valid = unfolded >= zloreject
+        masked = unfolded.masked_fill(~valid, torch.inf)
+        filtered, _ = masked.median(dim=1)
+        fallback, _ = unfolded.median(dim=1)
+        has_valid = valid.any(dim=1)
+        filtered = torch.where(has_valid, filtered, fallback)
+        return filtered.squeeze(0)
+    filtered, _ = unfolded.median(dim=1)
+    return filtered.squeeze(0)
+
+
 class TestProcessBlockInputs:
     """Tests for _process_block_inputs helper function."""
 
@@ -270,6 +292,30 @@ class TestMedianFilterTorch:
         image = torch.ones((5, 5)) * 5.0
         result = median_filter_torch(image, kernel_size=3)
         assert torch.allclose(result, image)
+
+    def test_chunked_matches_reference_kernel_5(self, monkeypatch):
+        """Test chunked median filter matches the full-frame reference."""
+        monkeypatch.setenv("DFCOSMIC_MAX_MEMORY_MB", "0.001")
+        image = torch.randn((17, 19), dtype=torch.float32)
+        result = median_filter_torch(image, kernel_size=5)
+        expected = _median_filter_reference(image, kernel_size=5)
+        assert torch.allclose(result, expected)
+
+    def test_chunked_matches_reference_with_zloreject(self, monkeypatch):
+        """Test chunked median filter preserves zloreject behavior."""
+        monkeypatch.setenv("DFCOSMIC_MAX_MEMORY_MB", "0.001")
+        image = torch.tensor(
+            [
+                [0.0, 1.0, 2.0, 3.0],
+                [4.0, 5.0, 6.0, 7.0],
+                [8.0, 9.0, 10.0, 11.0],
+                [12.0, 13.0, 14.0, 15.0],
+            ],
+            dtype=torch.float32,
+        )
+        result = median_filter_torch(image, kernel_size=3, zloreject=5.0)
+        expected = _median_filter_reference(image, kernel_size=3, zloreject=5.0)
+        assert torch.allclose(result, expected)
 
 
 class TestSigmaClipPytorch:

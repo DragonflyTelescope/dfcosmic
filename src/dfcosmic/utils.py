@@ -79,6 +79,19 @@ def _budgeted_chunk_rows(
     return max(1, min(int(default_rows), budget_rows))
 
 
+def _median_filter_chunk_rows(
+    image: torch.Tensor, kernel_size: int, default_rows: int = 128
+) -> int:
+    # Unfold materializes k*k values per output pixel, so this path needs a much
+    # tighter row budget than convolution on small CPU runners.
+    return _budgeted_chunk_rows(
+        width=image.shape[1],
+        dtype=image.dtype,
+        default_rows=default_rows,
+        bytes_per_row_multiplier=float(kernel_size * kernel_size + 3),
+    )
+
+
 try:
     import median_filter_cpp
 
@@ -269,6 +282,7 @@ def convolve(
 def median_filter_torch(
     image: torch.Tensor,
     kernel_size: int = 3,
+    zloreject: float | None = None,
 ) -> torch.Tensor:
     """
     Median filter with optional IRAF-like zloreject.
@@ -279,17 +293,43 @@ def median_filter_torch(
     _log_rss(f"utils.median_filter_torch k={kernel_size} start")
     h, w = image.shape
     pad = kernel_size // 2
+    chunk_rows = _median_filter_chunk_rows(image, kernel_size)
+    filtered = torch.empty_like(image)
 
-    image_padded = F.pad(
-        image.unsqueeze(0).unsqueeze(0), (pad, pad, pad, pad), mode="replicate"
-    )
-    _log_rss(f"utils.median_filter_torch k={kernel_size} after pad")
+    for i in range(0, h, chunk_rows):
+        i_end = min(i + chunk_rows, h)
+        src_y0 = max(0, i - pad)
+        src_y1 = min(h, i_end + pad)
+        pad_top = max(0, pad - i)
+        pad_bottom = max(0, i_end + pad - h)
 
-    unfolded = F.unfold(image_padded, kernel_size, stride=1)  # (1, k*k, h*w)
-    _log_rss(f"utils.median_filter_torch k={kernel_size} after unfold")
+        chunk = image[src_y0:src_y1, :].unsqueeze(0).unsqueeze(0)
+        chunk = F.pad(
+            chunk,
+            (pad, pad, pad_top, pad_bottom),
+            mode="replicate",
+        )
+        if i == 0:
+            _log_rss(f"utils.median_filter_torch k={kernel_size} after pad")
 
-    unfolded = unfolded.view(kernel_size * kernel_size, h, w)
-    filtered, _ = unfolded.median(dim=0)
+        unfolded = F.unfold(chunk, kernel_size, stride=1)
+        if i == 0:
+            _log_rss(f"utils.median_filter_torch k={kernel_size} after unfold")
+
+        unfolded = unfolded.view(1, kernel_size * kernel_size, i_end - i, w)
+        if zloreject is not None:
+            valid = unfolded >= zloreject
+            masked = unfolded.masked_fill(~valid, torch.inf)
+            chunk_filtered, _ = masked.median(dim=1)
+            fallback, _ = unfolded.median(dim=1)
+            has_valid = valid.any(dim=1)
+            chunk_filtered = torch.where(has_valid, chunk_filtered, fallback)
+        else:
+            chunk_filtered, _ = unfolded.median(dim=1)
+
+        filtered[i:i_end, :] = chunk_filtered.squeeze(0)
+        del chunk, unfolded, chunk_filtered
+
     _log_rss(f"utils.median_filter_torch k={kernel_size} before return")
     return filtered
 
