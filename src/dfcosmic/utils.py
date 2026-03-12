@@ -9,6 +9,32 @@ _DISABLE_CPP = os.environ.get("DFCOSMIC_DISABLE_CPP", "").lower() in {
     "yes",
 }
 
+
+def _rss_debug_enabled() -> bool:
+    return os.environ.get("DFCOSMIC_RSS_DEBUG", "").lower() in {"1", "true", "yes"}
+
+
+def _current_rss_mb() -> float | None:
+    try:
+        with open("/proc/self/status", encoding="utf-8") as fh:
+            for line in fh:
+                if line.startswith("VmRSS:"):
+                    return float(line.split()[1]) / 1024.0
+    except Exception:
+        return None
+    return None
+
+
+def _log_rss(label: str) -> None:
+    if not _rss_debug_enabled():
+        return
+    rss_mb = _current_rss_mb()
+    if rss_mb is None:
+        print(f"[rss] {label}: unavailable")
+    else:
+        print(f"[rss] {label}: {rss_mb:.1f} MiB")
+
+
 try:
     import median_filter_cpp
 
@@ -80,9 +106,10 @@ def block_replicate_torch(
 
 
 def convolve_chunked(
-    image: torch.Tensor, kernel: torch.Tensor, chunk_size: int = 512
+    image: torch.Tensor, kernel: torch.Tensor, chunk_size: int = 256
 ) -> torch.Tensor:
     """Memory-efficient chunked convolution"""
+    _log_rss("utils.convolve_chunked start")
     h, w = image.shape
     pad_h = kernel.shape[0] // 2
     pad_w = kernel.shape[1] // 2
@@ -93,15 +120,23 @@ def convolve_chunked(
     # Prepare kernel
     kernel_4d = kernel.unsqueeze(0).unsqueeze(0)
 
-    # Pad entire image once
-    image_padded = F.pad(image, (pad_w, pad_w, pad_h, pad_h), mode="constant", value=0)
-
     # Process in chunks
     for i in range(0, h, chunk_size):
         i_end = min(i + chunk_size, h)
+        src_y0 = max(0, i - pad_h)
+        src_y1 = min(h, i_end + pad_h)
+        pad_top = max(0, pad_h - i)
+        pad_bottom = max(0, i_end + pad_h - h)
 
-        # Extract chunk with padding
-        chunk = image_padded[i : i_end + 2 * pad_h, :].unsqueeze(0).unsqueeze(0)
+        chunk = image[src_y0:src_y1, :].unsqueeze(0).unsqueeze(0)
+        chunk = F.pad(
+            chunk,
+            (pad_w, pad_w, pad_top, pad_bottom),
+            mode="constant",
+            value=0,
+        )
+        if i == 0:
+            _log_rss("utils.convolve_chunked after first chunk pad")
 
         # Convolve
         result = F.conv2d(chunk, kernel_4d, padding=0)
@@ -109,18 +144,21 @@ def convolve_chunked(
 
         del chunk, result
 
+    _log_rss("utils.convolve_chunked before return")
     return output
 
 
 def convolve(
     image: torch.Tensor, kernel: torch.Tensor, chunk_size: int = 512
 ) -> torch.Tensor:
+    _log_rss("utils.convolve start")
     if image.numel() < 1000 * 1000:  # Small images, use direct method
         image_4d = image.unsqueeze(0).unsqueeze(0)
         kernel_4d = kernel.unsqueeze(0).unsqueeze(0)
         pad_h = kernel.shape[0] // 2
         pad_w = kernel.shape[1] // 2
         result = F.conv2d(image_4d, kernel_4d, padding=(pad_h, pad_w))
+        _log_rss("utils.convolve small before return")
         return result.squeeze(0).squeeze(0)
 
     # Large images - use chunked processing
@@ -130,15 +168,27 @@ def convolve(
 
     output = torch.empty_like(image)
     kernel_4d = kernel.unsqueeze(0).unsqueeze(0)
-    image_padded = F.pad(image, (pad_w, pad_w, pad_h, pad_h), mode="constant", value=0)
-
     for i in range(0, h, chunk_size):
         i_end = min(i + chunk_size, h)
-        chunk = image_padded[i : i_end + 2 * pad_h, :].unsqueeze(0).unsqueeze(0)
+        src_y0 = max(0, i - pad_h)
+        src_y1 = min(h, i_end + pad_h)
+        pad_top = max(0, pad_h - i)
+        pad_bottom = max(0, i_end + pad_h - h)
+
+        chunk = image[src_y0:src_y1, :].unsqueeze(0).unsqueeze(0)
+        chunk = F.pad(
+            chunk,
+            (pad_w, pad_w, pad_top, pad_bottom),
+            mode="constant",
+            value=0,
+        )
+        if i == 0:
+            _log_rss("utils.convolve after first chunk pad")
         result = F.conv2d(chunk, kernel_4d, padding=0)
         output[i:i_end, :] = result.squeeze(0).squeeze(0)
         del chunk, result
 
+    _log_rss("utils.convolve before return")
     return output
 
 
@@ -152,17 +202,21 @@ def median_filter_torch(
     If zloreject is not None, values < zloreject are ignored when computing the median
     (mimics IRAF median(..., zloreject=...)).
     """
+    _log_rss(f"utils.median_filter_torch k={kernel_size} start")
     h, w = image.shape
     pad = kernel_size // 2
 
     image_padded = F.pad(
         image.unsqueeze(0).unsqueeze(0), (pad, pad, pad, pad), mode="replicate"
     )
+    _log_rss(f"utils.median_filter_torch k={kernel_size} after pad")
 
     unfolded = F.unfold(image_padded, kernel_size, stride=1)  # (1, k*k, h*w)
+    _log_rss(f"utils.median_filter_torch k={kernel_size} after unfold")
 
     unfolded = unfolded.view(kernel_size * kernel_size, h, w)
     filtered, _ = unfolded.median(dim=0)
+    _log_rss(f"utils.median_filter_torch k={kernel_size} before return")
     return filtered
 
 
@@ -177,6 +231,7 @@ def median_filter_cpp_torch(
     NOTE: The current extension does not support zloreject. If zloreject is requested,
     we fall back to the torch implementation to preserve IRAF-parity behavior.
     """
+    _log_rss(f"utils.median_filter_cpp_torch k={kernel_size} start")
     if zloreject is not None:
         return median_filter_torch(image, kernel_size=kernel_size, zloreject=zloreject)
 
@@ -189,7 +244,9 @@ def median_filter_cpp_torch(
     if not image.is_contiguous():
         image = image.contiguous()
 
-    return median_filter_cpp.median_filter_cpu(image, kernel_size)
+    result = median_filter_cpp.median_filter_cpu(image, kernel_size)
+    _log_rss(f"utils.median_filter_cpp_torch k={kernel_size} before return")
+    return result
 
 
 def sigma_clip_pytorch(

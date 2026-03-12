@@ -1,5 +1,6 @@
 import os
 from contextlib import nullcontext
+from time import perf_counter
 
 import numpy as np
 import torch
@@ -25,6 +26,25 @@ _KERNEL_CACHE: dict[
     tuple[str, torch.dtype],
     tuple[tuple[int, int], torch.Tensor, torch.Tensor, torch.Tensor],
 ] = {}
+
+
+def _current_rss_mb() -> float | None:
+    try:
+        with open("/proc/self/status", encoding="utf-8") as fh:
+            for line in fh:
+                if line.startswith("VmRSS:"):
+                    return float(line.split()[1]) / 1024.0
+    except Exception:
+        return None
+    return None
+
+
+def _log_rss(label: str) -> None:
+    rss_mb = _current_rss_mb()
+    if rss_mb is None:
+        print(f"[rss] {label}: unavailable")
+    else:
+        print(f"[rss] {label}: {rss_mb:.1f} MiB")
 
 
 def _get_kernels(device: torch.device, dtype: torch.dtype):
@@ -125,183 +145,239 @@ def lacosmic(
         if _THREADPOOLCTL_AVAILABLE:
             cpu_thread_ctx = threadpool_limits(limits=cpu_threads)
 
-    with cpu_thread_ctx:
-        # Move/cast to torch
-        if isinstance(image, np.ndarray):
-            image_t = torch.from_numpy(image).to(device).float().contiguous()
-        else:
-            image_t = image.to(device).float().contiguous()
+    prev_rss_env = os.environ.get("DFCOSMIC_RSS_DEBUG")
+    if rss_debug:
+        os.environ["DFCOSMIC_RSS_DEBUG"] = "1"
 
-        block_size_tuple, block_size_tensor, laplacian_kernel, strel = _get_kernels(
-            device, image_t.dtype
-        )
-        gkernel = torch.ones((3, 3), dtype=image_t.dtype, device=device)
+    try:
+        with cpu_thread_ctx:
+            if rss_debug:
+                _log_rss("start")
+            # Move/cast to torch
+            if isinstance(image, np.ndarray):
+                image_t = torch.from_numpy(image).to(device).float().contiguous()
+            else:
+                image_t = image.to(device).float().contiguous()
+            if rss_debug:
+                _log_rss("after input cast/to(device)")
 
-        clean_image = image_t.clone()
-        del image_t
-
-        final_crmask = torch.zeros(clean_image.shape, dtype=torch.bool, device=device)
-        if device.type == "cpu":
-            torch.backends.mkldnn.enabled = True
-            median_filter_fn = (
-                median_filter_cpp_torch if use_cpp_median else median_filter_torch
+            block_size_tuple, block_size_tensor, laplacian_kernel, strel = _get_kernels(
+                device, image_t.dtype
             )
-        else:
-            median_filter_fn = median_filter_torch
+            gkernel = torch.ones((3, 3), dtype=image_t.dtype, device=device)
 
-        with torch.no_grad():
-            for iteration in range(niter):
-                if verbose:
-                    print("")
-                    print(f"{'_' * 31} Iteration {iteration + 1} {'_' * 35}")
-                    print("")
+            clean_image = image_t.clone()
+            del image_t
+            if rss_debug:
+                _log_rss("after clean_image clone")
 
-                # Step 0: Gain estimation (if requested)
-                if gain <= 0:
-                    if verbose and iteration == 0:
-                        print("Trying to determine gain automatically:")
-                    elif verbose:
-                        print("Improving gain estimate:")
+            final_crmask = torch.zeros(
+                clean_image.shape, dtype=torch.bool, device=device
+            )
+            if rss_debug:
+                _log_rss("after final_crmask allocation")
+            if device.type == "cpu":
+                torch.backends.mkldnn.enabled = True
+                median_filter_fn = (
+                    median_filter_cpp_torch if use_cpp_median else median_filter_torch
+                )
+            else:
+                median_filter_fn = median_filter_torch
 
-                    sky_level = sigma_clip_pytorch(clean_image, sigma=5, maxiters=10)[
-                        1
-                    ]["median"]
-                    med7 = median_filter_fn(clean_image, kernel_size=7)
-                    residuals = clean_image - med7
-                    del med7
-                    abs_residuals = torch.abs(residuals)
-                    del residuals
-                    mad = sigma_clip_pytorch(abs_residuals, sigma=5, maxiters=10)[1][
-                        "median"
-                    ]
-                    del abs_residuals
-                    sig = 1.48 * mad
+            with torch.no_grad():
+                for iteration in range(niter):
+                    iter_start = perf_counter()
+                    if verbose:
+                        print("")
+                        print(f"{'_' * 31} Iteration {iteration + 1} {'_' * 35}")
+                        print("")
+                    if rss_debug:
+                        _log_rss(f"iter {iteration + 1} start")
+
+                    # Step 0: Gain estimation (if requested)
+                    if gain <= 0:
+                        if verbose and iteration == 0:
+                            print("Trying to determine gain automatically:")
+                        elif verbose:
+                            print("Improving gain estimate:")
+
+                        sky_level = sigma_clip_pytorch(
+                            clean_image, sigma=5, maxiters=10
+                        )[1]["median"]
+                        med7 = median_filter_fn(clean_image, kernel_size=7)
+                        residuals = clean_image - med7
+                        del med7
+                        abs_residuals = torch.abs(residuals)
+                        del residuals
+                        mad = sigma_clip_pytorch(abs_residuals, sigma=5, maxiters=10)[
+                            1
+                        ]["median"]
+                        del abs_residuals
+                        sig = 1.48 * mad
+
+                        if verbose:
+                            print(f"  Approximate sky level = {sky_level:.2f} ADU")
+                            print(f"  Sigma of sky = {sig:.2f}")
+                            print(f"  Estimated gain = {sky_level / (sig**2):.2f}")
+                            print("")
+
+                        if sig == 0:
+                            raise ValueError(
+                                "Gain determination failed - provide estimate of gain manually. "
+                                f"Sky level: {sky_level:.2f}, Sigma: {sig:.2f}"
+                            )
+                        gain = sky_level / (sig**2)
+                        if gain <= 0:
+                            raise ValueError(
+                                "Gain determination failed - provide estimate of gain manually. "
+                                f"Sky level: {sky_level:.2f}, Sigma: {sig:.2f}"
+                            )
+                        if rss_debug:
+                            _log_rss(f"iter {iteration + 1} after gain estimation")
 
                     if verbose:
-                        print(f"  Approximate sky level = {sky_level:.2f} ADU")
-                        print(f"  Sigma of sky = {sig:.2f}")
-                        print(f"  Estimated gain = {sky_level / (sig**2):.2f}")
+                        print("Convolving image with Laplacian kernel")
                         print("")
 
-                    if sig == 0:
-                        raise ValueError(
-                            "Gain determination failed - provide estimate of gain manually. "
-                            f"Sky level: {sky_level:.2f}, Sigma: {sig:.2f}"
+                    # Step 1: Laplacian detection
+                    temp = block_replicate_torch(
+                        clean_image, block_size_tensor, conserve_sum=False
+                    )
+                    temp = convolve(temp, laplacian_kernel)
+                    temp.clamp_(min=0)
+                    temp = avg_pool2d(temp[None, None, :, :], block_size_tuple)[0, 0]
+                    if rss_debug:
+                        _log_rss(f"iter {iteration + 1} after laplacian detection")
+
+                    if verbose:
+                        print("Creating noise model using:")
+                        print(f"  gain = {gain:.2f} electrons/ADU")
+                        print(f"  readnoise = {readnoise:.2f} electrons")
+                        print("")
+
+                    # Step 2: Noise model
+                    med5 = median_filter_fn(clean_image, kernel_size=5)
+                    med5.clamp_(min=1e-4)
+                    noise = torch.sqrt(med5 * gain + readnoise**2) / gain
+                    del med5
+                    if rss_debug:
+                        _log_rss(f"iter {iteration + 1} after noise model")
+
+                    # Step 3: Significance map
+                    temp /= noise
+                    sigmap = temp
+                    sigmap /= 2.0
+                    sigmap -= median_filter_fn(sigmap, kernel_size=5)
+                    if rss_debug:
+                        _log_rss(f"iter {iteration + 1} after significance map")
+
+                    if verbose:
+                        print("Selecting candidate cosmic rays")
+                        print(f"  sigma limit = {sigclip:.1f}")
+                        print("")
+
+                    # Step 4: Initial CR candidates
+                    firstsel = (sigmap >= sigclip).to(sigmap.dtype)
+
+                    if verbose:
+                        print("Removing suspected compact bright objects (e.g. stars)")
+                        print(
+                            f"  selecting cosmic rays > {objlim:.1f} times object flux"
                         )
-                    gain = sky_level / (sig**2)
-                    if gain <= 0:
-                        raise ValueError(
-                            "Gain determination failed - provide estimate of gain manually. "
-                            f"Sky level: {sky_level:.2f}, Sigma: {sig:.2f}"
+                        print("")
+
+                    # Step 5: Reject objects (fine structure)
+                    med3 = median_filter_fn(clean_image, kernel_size=3)
+                    med7 = median_filter_fn(med3, kernel_size=7)
+                    med3 = med3 - med7
+                    del med7
+                    med3 = med3 / noise
+                    med3.clamp_(min=0.01)
+
+                    starreject = (firstsel * sigmap) / med3
+                    del med3
+                    starreject = (starreject >= objlim).to(sigmap.dtype)
+                    firstsel = firstsel * starreject
+                    del starreject
+                    if rss_debug:
+                        _log_rss(f"iter {iteration + 1} after star rejection")
+
+                    # Step 6: Neighbor pixel rejection / grow
+                    sigcliplow = sigclip * sigfrac
+
+                    if verbose:
+                        print("Finding neighbouring pixels affected by cosmic rays")
+                        print(f"  sigma limit = {sigcliplow:.1f}")
+                        print("")
+
+                    # First grow: keep pixels whose (grown mask * sig_map) > sigclip
+                    gfirstsel = convolve(firstsel, gkernel)
+                    del firstsel
+                    gfirstsel = (gfirstsel > 0.5).to(sigmap.dtype)
+                    gfirstsel = gfirstsel * sigmap
+                    gfirstsel = (gfirstsel > sigclip).to(sigmap.dtype)
+                    if rss_debug:
+                        _log_rss(f"iter {iteration + 1} after first grow")
+
+                    # Second grow: threshold at sigcliplow
+                    finalsel = convolve(gfirstsel, gkernel)
+                    del gfirstsel
+                    finalsel = (finalsel > 0.5).to(sigmap.dtype)
+                    finalsel = finalsel * sigmap
+                    finalsel = (finalsel > sigcliplow).to(sigmap.dtype)
+                    del sigmap
+                    if rss_debug:
+                        _log_rss(f"iter {iteration + 1} after second grow")
+
+                    # Count only NEW cosmic rays found in this iteration
+                    new_crs = (~final_crmask).to(finalsel.dtype) * finalsel
+                    npix = new_crs.sum().item()
+
+                    del new_crs
+
+                    if npix == 0:
+                        if finalsel.sum().item() > 0:
+                            # Update mask even if no new CRs (edge case)
+                            final_crmask |= finalsel.bool()
+                        if rss_debug:
+                            _log_rss(f"iter {iteration + 1} early exit")
+                            print(
+                                f"[rss] iter {iteration + 1} elapsed: "
+                                f"{perf_counter() - iter_start:.2f}s"
+                            )
+                        break
+
+                    # Step 7: Clean flagged pixels with 5x5 median replacement
+                    final_crmask |= finalsel.bool()
+
+                    if verbose:
+                        print(
+                            f"{int(npix)} cosmic rays found in iteration {iteration + 1}"
+                        )
+                        print("")
+
+                    # Create cleaned output image using 5x5 median
+                    tmp = clean_image.clone()
+                    sentinel = clean_image.max() * 1e4 + 1e6
+                    tmp[final_crmask] = sentinel
+                    tmp = median_filter_fn(tmp, kernel_size=5)
+                    # Only use the median at CR locations
+                    clean_image[final_crmask] = tmp[final_crmask]
+                    if rss_debug:
+                        _log_rss(f"iter {iteration + 1} after repair")
+                        print(
+                            f"[rss] iter {iteration + 1} elapsed: "
+                            f"{perf_counter() - iter_start:.2f}s"
                         )
 
-                if verbose:
-                    print("Convolving image with Laplacian kernel")
-                    print("")
+                    del tmp, finalsel, noise
 
-                # Step 1: Laplacian detection
-                temp = block_replicate_torch(
-                    clean_image, block_size_tensor, conserve_sum=False
-                )
-                temp = convolve(temp, laplacian_kernel)
-                temp.clamp_(min=0)
-                temp = avg_pool2d(temp[None, None, :, :], block_size_tuple)[0, 0]
-
-                if verbose:
-                    print("Creating noise model using:")
-                    print(f"  gain = {gain:.2f} electrons/ADU")
-                    print(f"  readnoise = {readnoise:.2f} electrons")
-                    print("")
-
-                # Step 2: Noise model
-                med5 = median_filter_fn(clean_image, kernel_size=5)
-                med5.clamp_(min=1e-4)
-                noise = torch.sqrt(med5 * gain + readnoise**2) / gain
-                del med5
-
-                # Step 3: Significance map
-                temp /= noise
-                sigmap = temp
-                sigmap /= 2.0
-                sigmap -= median_filter_fn(sigmap, kernel_size=5)
-
-                if verbose:
-                    print("Selecting candidate cosmic rays")
-                    print(f"  sigma limit = {sigclip:.1f}")
-                    print("")
-
-                # Step 4: Initial CR candidates
-                firstsel = (sigmap >= sigclip).to(sigmap.dtype)
-
-                if verbose:
-                    print("Removing suspected compact bright objects (e.g. stars)")
-                    print(f"  selecting cosmic rays > {objlim:.1f} times object flux")
-                    print("")
-
-                # Step 5: Reject objects (fine structure)
-                med3 = median_filter_fn(clean_image, kernel_size=3)
-                med7 = median_filter_fn(med3, kernel_size=7)
-                med3 = med3 - med7
-                del med7
-                med3 = med3 / noise
-                med3.clamp_(min=0.01)
-
-                starreject = (firstsel * sigmap) / med3
-                del med3
-                starreject = (starreject >= objlim).to(sigmap.dtype)
-                firstsel = firstsel * starreject
-                del starreject
-
-                # Step 6: Neighbor pixel rejection / grow
-                sigcliplow = sigclip * sigfrac
-
-                if verbose:
-                    print("Finding neighbouring pixels affected by cosmic rays")
-                    print(f"  sigma limit = {sigcliplow:.1f}")
-                    print("")
-
-                # First grow: keep pixels whose (grown mask * sig_map) > sigclip
-                gfirstsel = convolve(firstsel, gkernel)
-                del firstsel
-                gfirstsel = (gfirstsel > 0.5).to(sigmap.dtype)
-                gfirstsel = gfirstsel * sigmap
-                gfirstsel = (gfirstsel > sigclip).to(sigmap.dtype)
-
-                # Second grow: threshold at sigcliplow
-                finalsel = convolve(gfirstsel, gkernel)
-                del gfirstsel
-                finalsel = (finalsel > 0.5).to(sigmap.dtype)
-                finalsel = finalsel * sigmap
-                finalsel = (finalsel > sigcliplow).to(sigmap.dtype)
-                del sigmap
-
-                # Count only NEW cosmic rays found in this iteration
-                new_crs = (~final_crmask).to(finalsel.dtype) * finalsel
-                npix = new_crs.sum().item()
-
-                del new_crs
-
-                if npix == 0:
-                    if finalsel.sum().item() > 0:
-                        # Update mask even if no new CRs (edge case)
-                        final_crmask |= finalsel.bool()
-                    break
-
-                # Step 7: Clean flagged pixels with 5x5 median replacement
-                final_crmask |= finalsel.bool()
-
-                if verbose:
-                    print(f"{int(npix)} cosmic rays found in iteration {iteration + 1}")
-                    print("")
-
-                # Create cleaned output image using 5x5 median
-                tmp = clean_image.clone()
-                sentinel = clean_image.max() * 1e4 + 1e6
-                tmp[final_crmask] = sentinel
-                tmp = median_filter_fn(tmp, kernel_size=5)
-                # Only use the median at CR locations
-                clean_image[final_crmask] = tmp[final_crmask]
-
-                del tmp, finalsel, noise
-
+        if rss_debug:
+            _log_rss("before cpu().numpy() return")
         return clean_image.cpu().numpy(), final_crmask.cpu().numpy()
+    finally:
+        if rss_debug:
+            if prev_rss_env is None:
+                os.environ.pop("DFCOSMIC_RSS_DEBUG", None)
+            else:
+                os.environ["DFCOSMIC_RSS_DEBUG"] = prev_rss_env
