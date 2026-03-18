@@ -75,6 +75,7 @@ Timing Analysis
    :maxdepth: 1
    :caption: Examples:
 
+   demos/QuickExample.ipynb
    demos/Comparison.ipynb
    demos/HST.ipynb
 
