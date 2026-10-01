@@ -1,0 +1,50 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata from this file."
+type: software
+title: "dfcosmic"
+abstract: "A high-performance Python package for cosmic ray removal following the original paper by van Dokkum 2001."
+version: 0.1.0
+license: GPL-3.0-only
+doi: 10.5281/zenodo.18451350
+repository-code: "https://github.com/DragonflyTelescope/dfcosmic"
+url: "https://dfcosmic.readthedocs.io"
+keywords:
+  - astronomy
+  - cosmic rays
+  - image processing
+  - PyTorch
+authors:
+  - family-names: Rhea
+    given-names: Carter Lee
+    orcid: "https://orcid.org/0000-0003-2001-1076"
+  - family-names: Dokkum
+    name-particle: van
+    given-names: Pieter
+  - family-names: Janssens
+    given-names: Steven R.
+    orcid: "https://orcid.org/0000-0003-0327-3322"
+  - family-names: Pasha
+    given-names: Imad
+  - family-names: Abraham
+    given-names: Roberto
+  - family-names: Bowman
+    given-names: William P.
+    orcid: "https://orcid.org/0000-0003-4381-5245"
+  - family-names: Lokhorst
+    given-names: Deborah
+  - family-names: Chen
+    given-names: Seery
+references:
+  - type: article
+    title: "Cosmic-Ray Rejection by Laplacian Edge Detection"
+    authors:
+      - family-names: Dokkum
+        name-particle: van
+        given-names: Pieter G.
+    journal: "Publications of the Astronomical Society of the Pacific"
+    volume: 113
+    issue: 789
+    start: 1420
+    end: 1427
+    year: 2001
+    doi: 10.1086/323894
