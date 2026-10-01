@@ -148,6 +148,36 @@ class TestLacosmic:
         # Should detect some cosmic rays
         assert mask.sum() > 0
 
+    def test_gain_estimated_at_every_iteration(self, capsys):
+        """As in the IRAF script, the gain estimate is repeated at each iteration."""
+        rng = np.random.default_rng(3)
+        image = rng.poisson(200, (200, 200)).astype(np.float32)
+        ys, xs = rng.integers(5, 195, 400), rng.integers(5, 195, 400)
+        image[ys, xs] += rng.uniform(500, 5000, 400).astype(np.float32)
+
+        _, mask = lacosmic(image, niter=2, readnoise=5, verbose=True)
+        assert mask.sum() > 100
+        estimates = [
+            float(line.split("=")[1])
+            for line in capsys.readouterr().out.splitlines()
+            if "Estimated gain" in line
+        ]
+        assert len(estimates) == 2
+        assert all(0.5 < gain < 2 for gain in estimates)
+
+    def test_explicit_gain_is_not_estimated(self, capsys):
+        image = np.random.default_rng(3).poisson(200, (100, 100)).astype(np.float32)
+        lacosmic(image, niter=3, gain=1.0, readnoise=5, verbose=True)
+        assert "Estimated gain" not in capsys.readouterr().out
+
+    def test_background_subtracted_image_needs_gain(self):
+        """The gain estimate needs the sky level, which is gone after subtraction."""
+        image = np.random.default_rng(3).normal(-1, 5, (100, 100)).astype(np.float32)
+        with pytest.raises(ValueError, match="background-subtracted"):
+            lacosmic(image, readnoise=5)
+        cleaned, _ = lacosmic(image, gain=1.0, readnoise=5)
+        assert cleaned.shape == image.shape
+
     def test_gain_approximation_failure(self):
         """Test that gain approximation fails gracefully on invalid data."""
         # Create uniform image which will have zero variance and cause gain calculation to fail

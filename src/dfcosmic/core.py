@@ -98,13 +98,15 @@ def lacosmic(
     objlim : float
         The contrast limit between CR and underlying objects. Default is 1.0.
     niter : int
-        The number of iterations to perform. Default is 1.0.
+        The number of iterations to perform. Default is 1.
     gain : float
-        The gain of the image in electrons/ADU. Default is 0.0.
+        The gain of the image in electrons/ADU. Default is 0.0, in which case the
+        gain is estimated from the image at every iteration (see Notes).
     readnoise : float
         The read noise of the image in electrons. Default is 0.0.
     device : str
-        The device to use for computation. Default is "cpu".
+        The device to use for computation, e.g. "cpu", "cuda" (NVIDIA GPU) or "mps"
+        (Apple Silicon GPU). Default is "cpu".
     cpu_threads : int | None
         Number of cpu threads to use. Default is None.
     use_cpp : bool | None
@@ -134,7 +136,14 @@ def lacosmic(
 
     Notes
     -----
-    If the gain is set to zero (or not provided), then we compute it assuming sky-dominated noise and poisson statistics.
+    If the gain is set to zero (or not provided), it is estimated at every iteration
+    from the image cleaned so far, assuming sky-dominated noise and Poisson
+    statistics: ``gain = sky / sigma**2``, where ``sky`` is the sigma-clipped median of
+    the image and ``sigma`` its robust scatter around a 7x7 median. This only works if
+    the image still contains its sky background. For background-subtracted images the
+    estimate fails with a ``ValueError`` (or is meaningless), so the gain has to be
+    given explicitly; the ``skyval`` and ``statsec`` parameters of the original IRAF
+    script are not implemented.
 
     All computations are done in single precision: the input is cast to float32 and
     the cleaned image is returned as float32, whatever the input dtype (including
@@ -156,15 +165,39 @@ def lacosmic(
     contains placeholder values: every repaired pixel is the value of an unflagged
     pixel of the input image.
 
-    Performance Tips
-    ----------------
-    For CPU performance:
-    - Use gain parameter if known to avoid gain estimation overhead
-    - Set niter=1 for faster processing (at cost of potentially detecting fewer cosmic rays)
-    - Build the optional C++ median filter (see the installation instructions); it is
-      used automatically once available
+    Performance tips:
 
-    For best performance, use CUDA-enabled GPU by setting device='cuda'.
+    - Provide the gain if it is known, to avoid the cost of estimating it at every
+      iteration.
+    - Use ``niter=1`` for faster processing, at the cost of potentially detecting
+      fewer cosmic rays.
+    - On the CPU, build the optional C++ median filter (see the installation
+      instructions); it is used automatically once available.
+    - For the best performance use a GPU: ``device="cuda"``, or ``device="mps"`` on
+      Apple Silicon.
+
+    Examples
+    --------
+    Clean a synthetic sky frame with a few cosmic ray hits on the CPU:
+
+    >>> import numpy as np
+    >>> from dfcosmic import lacosmic
+    >>> rng = np.random.default_rng(0)
+    >>> image = rng.normal(200, 15, (100, 100)).astype(np.float32)
+    >>> image[[20, 50, 80], [30, 60, 10]] += 2000
+    >>> clean, mask = lacosmic(image, gain=1.0, readnoise=5.0)
+    >>> clean.shape, mask.dtype
+    ((100, 100), dtype('bool'))
+    >>> bool(mask[20, 30])
+    True
+
+    With data from a FITS file (requires ``astropy``):
+
+    >>> from astropy.io import fits  # doctest: +SKIP
+    >>> image = fits.getdata("image.fits")  # doctest: +SKIP
+    >>> clean, mask = lacosmic(  # doctest: +SKIP
+    ...     image, sigclip=4.5, sigfrac=0.3, objlim=4, gain=7, readnoise=5, niter=4
+    ... )
     """
 
     device = torch.device(device)
@@ -269,15 +302,32 @@ def lacosmic(
                     if rss_debug:
                         _log_rss(f"iter {iteration + 1} start")
 
-                    # Step 0: Gain estimation (if requested)
-                    if gain <= 0:
+                    # Step 0: Gain estimation (if requested). As in the original
+                    # IRAF script, the estimate is repeated at every iteration on the
+                    # image cleaned so far.
+                    if gain > 0:
+                        usegain = gain
+                    else:
                         if verbose and iteration == 0:
                             print("Trying to determine gain automatically:")
                         elif verbose:
                             print("Improving gain estimate:")
 
+                        # Leave out non-finite input pixels and pixels that could
+                        # not be repaired in the previous iteration.
+                        exclude = bad_mask
+                        if iteration > 0:
+                            unrepaired = clean_image >= sentinel
+                            if unrepaired.any():
+                                exclude = (
+                                    unrepaired
+                                    if bad_mask is None
+                                    else unrepaired | bad_mask
+                                )
+                            del unrepaired
+
                         sky_level = sigma_clip_pytorch(
-                            clean_image if bad_mask is None else clean_image[~bad_mask],
+                            clean_image if exclude is None else clean_image[~exclude],
                             sigma=5,
                             maxiters=10,
                         )[1]["median"]
@@ -286,31 +336,33 @@ def lacosmic(
                         del med7
                         abs_residuals = torch.abs(residuals)
                         del residuals
-                        if bad_mask is not None:
-                            abs_residuals = abs_residuals[~bad_mask]
+                        if exclude is not None:
+                            abs_residuals = abs_residuals[~exclude]
+                        del exclude
                         mad = sigma_clip_pytorch(abs_residuals, sigma=5, maxiters=10)[
                             1
                         ]["median"]
                         del abs_residuals
                         sig = 1.48 * mad
 
+                        if sig == 0 or not math.isfinite(sig):
+                            raise ValueError(
+                                "Gain determination failed - provide the gain manually "
+                                "(this is required for background-subtracted images). "
+                                f"Sky level: {sky_level:.2f}, Sigma: {sig:.2f}"
+                            )
+                        usegain = sky_level / (sig**2)
+                        if usegain <= 0 or not math.isfinite(usegain):
+                            raise ValueError(
+                                "Gain determination failed - provide the gain manually "
+                                "(this is required for background-subtracted images). "
+                                f"Sky level: {sky_level:.2f}, Sigma: {sig:.2f}"
+                            )
                         if verbose:
                             print(f"  Approximate sky level = {sky_level:.2f} ADU")
                             print(f"  Sigma of sky = {sig:.2f}")
-                            print(f"  Estimated gain = {sky_level / (sig**2):.2f}")
+                            print(f"  Estimated gain = {usegain:.2f}")
                             print("")
-
-                        if sig == 0 or not math.isfinite(sig):
-                            raise ValueError(
-                                "Gain determination failed - provide estimate of gain manually. "
-                                f"Sky level: {sky_level:.2f}, Sigma: {sig:.2f}"
-                            )
-                        gain = sky_level / (sig**2)
-                        if gain <= 0 or not math.isfinite(gain):
-                            raise ValueError(
-                                "Gain determination failed - provide estimate of gain manually. "
-                                f"Sky level: {sky_level:.2f}, Sigma: {sig:.2f}"
-                            )
                         if rss_debug:
                             _log_rss(f"iter {iteration + 1} after gain estimation")
 
@@ -329,14 +381,14 @@ def lacosmic(
 
                     if verbose:
                         print("Creating noise model using:")
-                        print(f"  gain = {gain:.2f} electrons/ADU")
+                        print(f"  gain = {usegain:.2f} electrons/ADU")
                         print(f"  readnoise = {readnoise:.2f} electrons")
                         print("")
 
                     # Step 2: Noise model
                     med5 = median_filter_fn(clean_image, kernel_size=5)
                     med5.clamp_(min=1e-4)
-                    noise = torch.sqrt(med5 * gain + readnoise**2) / gain
+                    noise = torch.sqrt(med5 * usegain + readnoise**2) / usegain
                     del med5
                     if rss_debug:
                         _log_rss(f"iter {iteration + 1} after noise model")
