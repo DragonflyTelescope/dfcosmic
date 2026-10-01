@@ -8,6 +8,21 @@
 
 A high-performance Python package for cosmic ray removal strictly following the procedure outlined in [van Dokkum 2001](https://ui.adsabs.harvard.edu/abs/2001PASP..113.1420V/abstract). Although several other implementations exist, their procedures differ slightly from that described in van Dokkum 2001. In this package, we use [PyTorch](https://pytorch.org/) to achieve considerable speedup over the original implementation while retaining fidelity to the algorithmic choices presented in the original paper.
 
+## Who is dfcosmic for?
+
+`dfcosmic` is for people who want the *original* L.A.Cosmic algorithm, as implemented in the IRAF script `lacos_im.cl`, at pipeline speed. It was written for the nightly reduction pipeline of the MOTHRA array, which has to clean tens of thousands of large CMOS frames every night using two threads per frame. On those data a true median filter turned out to be necessary to remove cosmic rays and hot pixels without also flagging the cores of bright stars.
+
+`dfcosmic` is a good choice if:
+
+- **You need results that match the original algorithm.** `dfcosmic` always uses a true (non-separable) median filter, and its mask agrees closely with the IRAF mask on the *HST* WFPC2 frame from van Dokkum 2001 (see the [example](#simple-example) below).
+- **You need that at scale.** With the [optional C++ median filter](#optional-c-median-filter-for-the-cpu) and two or more threads, it is faster than the other true-median implementations we tested, and on a GPU it is more than an order of magnitude faster (see the [timing comparison](#timing-comparisons)).
+
+[astroscrappy](https://github.com/astropy/astroscrappy) with its default settings (`sepmed=True`) is the better choice if:
+
+- **CPU speed matters more to you than exact agreement with the original algorithm.** Its separable median filter is much faster on a CPU, at the cost of a different mask, most visibly in the cores of bright stars.
+- **You do not want PyTorch as a dependency**, which is a large install.
+- **You need features that `dfcosmic` does not have**, such as input masks, saturation handling or a background/variance image.
+
 ## Installation
 
 ### Using PyPi
@@ -28,7 +43,7 @@ cd dfcosmic
 pip install -e .
 ```
 
-Both of these give you a pure-Python install that runs entirely on PyTorch (CPU or GPU). The plots in the demo notebooks need a few extra packages, which you can get with `pip install "dfcosmic[notebooks]"`.
+Both of these give you a pure-Python install that runs entirely on PyTorch (CPU or GPU). The [example notebooks](#example-notebooks) need a few extra packages, which you can get with `pip install "dfcosmic[notebooks]"`.
 
 For development installation with documentation dependencies:
 
@@ -67,22 +82,43 @@ We follow the same parameter naming conventions presented in the original IRAF c
 - `sigfrac`: The fractional detection limit for neighboring pixels
 - `sigclip`: The detection limit for cosmic rays
 
+The following example runs as is on a CPU. It uses a synthetic image; replace it with your own 2D image, for example from `astropy.io.fits.getdata`.
+
 ```python
+import numpy as np
 from dfcosmic import lacosmic
 
+# Synthetic sky frame with 50 cosmic ray hits
+rng = np.random.default_rng(0)
+image = rng.normal(200, 15, (512, 512)).astype(np.float32)
+image[rng.integers(0, 512, 50), rng.integers(0, 512, 50)] += 2000
+
 clean_image, crmask = lacosmic(
-    image=original_data,
-    objlim=2,
-    sigfrac=1,
-    sigclip=6,
+    image,
+    sigclip=4.5,
+    sigfrac=0.5,
+    objlim=1,
     gain=1,
-    readnoise=10,
+    readnoise=5,
     niter=1,
-    device="cuda",
+    device="cpu",
 )
+print(f"{crmask.sum()} pixels flagged")
 ```
 
-If you are unsure of either the gain or the readnoise you can leave them blank or set to 0. If so, then the gain will be estimated at each iteration.
+`lacosmic` returns the cleaned image and a boolean mask of the flagged pixels.
+
+### Running on a GPU
+
+Set `device="cuda"` to run on an NVIDIA GPU, or `device="mps"` on Apple Silicon. This requires a PyTorch build with support for that device; asking for a device that is not available raises an error. You can check with `torch.cuda.is_available()` or `torch.backends.mps.is_available()`.
+
+### Gain and read noise
+
+If you do not know the gain you can leave it out or set it to 0. It is then estimated from the image at every iteration, as in the original IRAF script, assuming that the noise is dominated by the sky background.
+
+This estimate needs the sky background to still be in the image. For background-subtracted frames it fails with `Gain determination failed` (or gives a meaningless value), so for those you have to provide the gain. The `skyval` and `statsec` parameters of the IRAF script are not implemented.
+
+If you know the gain, providing it is also faster, since the estimate costs an additional median filter per iteration.
 
 ### Input images
 
@@ -115,6 +151,20 @@ In order to run this timing comparison, we use the synthetic data described (and
 
 ![Timing Comparisons](demos/comparison.png)
 
+## Example Notebooks
+
+The notebooks in [demos/](./demos) are also rendered in the [documentation](https://dfcosmic.readthedocs.io):
+
+- [QuickExample.ipynb](./demos/QuickExample.ipynb): cleaning the *HST* WFPC2 frame from van Dokkum 2001 and comparing the mask with the one from IRAF.
+- [HST.ipynb](./demos/HST.ipynb): the same frame cleaned with `dfcosmic`, `astroscrappy` and `lacosmic`.
+- [Comparison.ipynb](./demos/Comparison.ipynb): the timing comparison shown above.
+
+The notebooks need a few packages that `dfcosmic` itself does not depend on: `astropy`, `matplotlib` and `cmcrameri` for all of them, and `astroscrappy` and `lacosmic` for the two comparison notebooks. You can install all of them with
+
+```bash
+pip install "dfcosmic[notebooks]"
+```
+
 
 ## Running Tests
 The unit tests can be run using the following command:
@@ -127,13 +177,7 @@ The default settings are in the `[tool.pytest.ini_options]` section of `pyprojec
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Contributions are welcome! [CONTRIBUTING.md](CONTRIBUTING.md) explains how to set up a development environment, run the tests and the linter, and build the documentation. Changes between releases are listed in [CHANGELOG.md](CHANGELOG.md).
 
 ## Citation
 If you use this package, please include a reference to the GitHub repository and the following Zenodo DOI: 10.5281/zenodo.18451351. Citation metadata is also available in [CITATION.cff](CITATION.cff) (the "Cite this repository" button on GitHub).
@@ -144,4 +188,10 @@ If you use this package, please include a reference to the GitHub repository and
 The License for all past and present versions is the GPL-3.0.
 
 ## AI Disclosure
-Claude code was used to help with the unit tests *only*. CodeX was used to create *only* the c++ code for the median filter and make the code more memory efficient. Every line of code was manually inspected.
+Generative AI was used for the following parts of this project:
+
+1. Claude (Claude.ai and Claude Code) was used to help write the unit tests and to understand the original IRAF implementation.
+2. ChatGPT/Codex was used to write the C++ median filter and to make the code more memory efficient.
+3. Claude Code was used to help implement the changes requested during the pyOpenSci review: packaging and continuous integration, input validation, the handling of non-finite and unrepairable pixels, the per-iteration gain estimate, and documentation.
+
+The original implementation of the algorithm was written by the authors without AI. All code produced by AI was manually inspected for correctness.
