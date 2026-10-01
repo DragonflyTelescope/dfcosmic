@@ -243,6 +243,8 @@ def lacosmic(
                 clean_image.abs().max().item() * 1e4 + 1e6,
                 torch.finfo(clean_image.dtype).max,
             )
+            # Round to the working precision so it can be compared exactly later
+            sentinel = torch.tensor(sentinel, dtype=clean_image.dtype).item()
 
             final_crmask = torch.zeros(
                 clean_image.shape, dtype=torch.bool, device=device
