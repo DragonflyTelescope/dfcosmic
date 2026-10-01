@@ -6,10 +6,21 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _version
+
 project = "dfcosmic"
-copyright = "2025, Carter Rhea, Pieter van Dokkum"
-author = "Carter Rhea, Pieter van Dokkum"
-release = "v1.0.0"
+author = (
+    "Carter Rhea, Pieter van Dokkum, Steven Janssens, Imad Pasha, Roberto Abraham, "
+    "William P. Bowman, Deborah Lokhorst, Seery Chen"
+)
+copyright = f"2025, {author}"
+# The docs are built with dfcosmic installed, so take the version from the package
+try:
+    release = _version("dfcosmic")
+except PackageNotFoundError:
+    release = "unknown"
+version = release
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -19,6 +30,7 @@ extensions = [
     "autoapi.extension",
     "sphinx_copybutton",
     "nbsphinx",
+    "myst_parser",
 ]
 
 templates_path = ["_templates"]
