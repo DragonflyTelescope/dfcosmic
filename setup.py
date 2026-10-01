@@ -9,11 +9,21 @@ _TRUE = {"1", "true", "yes", "on"}
 _FALSE = {"0", "false", "no", "off"}
 
 
-def _openmp_flags():
+def _openmp_flags(torch_lib_dir: str):
     if sys.platform.startswith("win"):
         return ["/openmp", "/O2"], []
     if sys.platform == "darwin":
-        return ["-O3", "-Xpreprocessor", "-fopenmp"], ["-lomp"]
+        compile_args = ["-O3", "-Xpreprocessor", "-fopenmp"]
+        # torch wheels on macOS bundle their own libomp. Linking a second OpenMP
+        # runtime (e.g. Homebrew's) into the same process segfaults, so link against
+        # the copy torch already loads whenever it is there.
+        if os.path.exists(os.path.join(torch_lib_dir, "libomp.dylib")):
+            return compile_args, [
+                f"-L{torch_lib_dir}",
+                f"-Wl,-rpath,{torch_lib_dir}",
+                "-lomp",
+            ]
+        return compile_args, ["-lomp"]
     return ["-O3", "-fopenmp"], ["-fopenmp"]
 
 
@@ -36,6 +46,7 @@ def _build_extensions():
         return None
 
     try:
+        import torch  # type: ignore
         from torch.utils.cpp_extension import BuildExtension, CppExtension  # type: ignore
     except Exception as exc:
         if requested in _TRUE:
@@ -46,7 +57,8 @@ def _build_extensions():
             ) from exc
         return None
 
-    extra_compile_args, extra_link_args = _openmp_flags()
+    torch_lib_dir = os.path.join(os.path.dirname(torch.__file__), "lib")
+    extra_compile_args, extra_link_args = _openmp_flags(torch_lib_dir)
 
     ext_modules = [
         CppExtension(

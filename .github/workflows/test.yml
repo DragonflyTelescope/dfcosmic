@@ -90,13 +90,6 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install OpenMP (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew install libomp
-          echo "CPPFLAGS=-I$(brew --prefix libomp)/include" >> "$GITHUB_ENV"
-          echo "LDFLAGS=-L$(brew --prefix libomp)/lib" >> "$GITHUB_ENV"
-
       - name: Install with the C++ extension
         env:
           DFCOSMIC_BUILD_CPP: "1"

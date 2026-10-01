@@ -11,8 +11,11 @@ installed. Without it, dfcosmic runs entirely on PyTorch.
 Building
 --------
 
-You need a C++ compiler with OpenMP support (on macOS: ``brew install libomp``) and
-PyTorch installed *before* building:
+You need a C++ compiler with OpenMP support and PyTorch installed *before* building.
+On macOS the Xcode command line tools are enough: the extension links against the
+OpenMP runtime bundled with the PyTorch wheel, so do not point the build at a separate
+``libomp`` (e.g. Homebrew's) via ``LDFLAGS``; two OpenMP runtimes in one process will
+crash.
 
 .. code-block:: bash
 
