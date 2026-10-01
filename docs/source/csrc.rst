@@ -1,32 +1,60 @@
-CPU C++ Extensions (csrc)
-=========================
+CPU C++ Extension (csrc)
+========================
 
-dfcosmic ships optional C++/OpenMP CPU extensions for a faster median filter. 
-This is built during installation (or manually via
-``python csrc/setup.py build_ext --inplace``) and exposed as Python extension
-modules.
+dfcosmic includes an optional C++/OpenMP median filter for the CPU. It gives the
+same results as the PyTorch median filter but is faster.
 
-This function is CPU-only and expects 2D ``torch.Tensor`` inputs with a
-floating dtype (the C++ code accesses data as ``float``). If the extensions are
-not built, the module below will not be importable.
+The extension is **not** part of the wheel on PyPI and is **not** built by a plain
+``pip install``: it has to be compiled against the PyTorch version you have
+installed. Without it, dfcosmic runs entirely on PyTorch.
 
-median_filter_cpp
------------------
+Building
+--------
 
-``median_filter_cpp.median_filter_cpu(input, kernel_size) -> torch.Tensor``
+You need a C++ compiler with OpenMP support (on macOS: ``brew install libomp``) and
+PyTorch installed *before* building:
 
-- ``input``: 2D tensor (H, W).
+.. code-block:: bash
+
+    pip install torch "setuptools>=77"
+    git clone https://github.com/DragonflyTelescope/dfcosmic.git
+    cd dfcosmic
+    DFCOSMIC_BUILD_CPP=1 pip install --no-build-isolation -e .
+
+``--no-build-isolation`` makes your installed PyTorch visible to the build, and
+``DFCOSMIC_BUILD_CPP=1`` turns a missing PyTorch into an error rather than silently
+skipping the extension. To check that the extension is available:
+
+.. code-block:: python
+
+    from dfcosmic.utils import cpp_median_available
+
+    print(cpp_median_available())
+
+The extension is tied to the PyTorch version it was built against, so it has to be
+rebuilt after upgrading PyTorch. If it is missing or fails to load,
+``lacosmic(..., use_cpp=True)`` emits a warning (once per session) and uses the
+PyTorch median filter; with the default ``use_cpp=None`` the fallback is silent.
+Setting the environment variable ``DFCOSMIC_DISABLE_CPP=1`` disables the extension
+at runtime.
+
+dfcosmic._median_filter_cpp
+---------------------------
+
+``dfcosmic._median_filter_cpp.median_filter_cpu(input, kernel_size) -> torch.Tensor``
+
+- ``input``: 2D ``float32`` CPU tensor (H, W).
 - ``kernel_size``: odd integer window size.
 - Behavior: uses replicate-style boundary handling by clamping indices at the
   image edges.
 
-Example:
+This is a private module; the supported entry point is
+``dfcosmic.utils.median_filter_cpp_torch``, which also handles dtype conversion:
 
 .. code-block:: python
 
     import torch
-    import median_filter_cpp
+    from dfcosmic.utils import median_filter_cpp_torch
 
     image = torch.rand(512, 512, dtype=torch.float32)
-    filtered = median_filter_cpp.median_filter_cpu(image, kernel_size=5)
-
+    filtered = median_filter_cpp_torch(image, kernel_size=5)
