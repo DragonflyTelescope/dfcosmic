@@ -47,7 +47,7 @@ bibliography: dfcosmic.bib
 
 # Summary
 
-Astronomical images often show sharp features that are caused by cosmic ray (CR) hits, hot pixels, or non-Gaussian noise. L.A.Cosmic [@van_dokkum_cosmic-ray_2001] is a widely used edge detection algorithm that identifies and replaces such features. Here we describe `dfcosmic`, a direct python port of L.A.Cosmic utilizing PyTorch and C++ to enable efficient performance on both CPUs and GPUs. The code was developed for the MOTHRA array, which is projected to produce more than 1000 large format CMOS images every 15 minutes. Compared to previous Python implementations, `dfcosmic` achieves a speed gain of at least 20%.
+Astronomical images often show sharp features that are caused by cosmic ray (CR) hits, hot pixels, or non-Gaussian noise. L.A.Cosmic [@van_dokkum_cosmic-ray_2001] is a widely used edge detection algorithm that identifies and replaces such features. Here we describe `dfcosmic`, a direct python port of L.A.Cosmic utilizing PyTorch, with an optional C++ median filter, to enable efficient performance on both CPUs and GPUs. The code was developed for the MOTHRA array, which is projected to produce more than 1000 large format CMOS images every 15 minutes. Compared to previous Python implementations, `dfcosmic` achieves a speed gain of at least 20%.
 
 # Statement of need
 The Modular Optical Telephoto Hyperspectral Robotic Array (MOTHRA) uses CMOS sensors rather than traditional CCDs. Modern CMOS detectors have extraordinarily low noise but suffer from a relatively high number of hot pixels and non-Gaussian noise ("salt-and-pepper"; [@alarcon_scientific_2023]).
@@ -72,9 +72,9 @@ Although the performance gain with 2 or more threads may seem small compared wit
 
 # Software design
 `dfcosmic` was designed to be a simple PyTorch implementation of the cosmic ray reduction algorithm initially developed in [@van_dokkum_cosmic-ray_2001]. 
-The code was complexified in order to achieve greater reductions in speed. Notably, initial benchmarking revealed the dilation and median filter algorithms to be considerable bottlenecks. Therefore, we adopted C++ implementations of both of these algorithms. Doing so allowed `dfcosmic` to be competitive (and even outperform) existing implementations when run on 2 or more threads. We chose to use PyTorch instead of a more standard library, such as numpy or scipy, so that we could take advantage of the GPU, if available. As demonstrated in \autoref{fig:comparison}, the GPU implementation is more than an order of magnitude faster than any other implementation. Although not explored here, the GPU implementation also allows for batch processing which can enable further speedup. 
+The code was complexified in order to achieve greater reductions in speed. Notably, initial benchmarking revealed the median filter to be the main bottleneck. Therefore, we provide an optional C++ implementation of the median filter for the CPU, which is built from source against the installed version of PyTorch. Doing so allowed `dfcosmic` to be competitive (and even outperform) existing implementations when run on 2 or more threads. We chose to use PyTorch instead of a more standard library, such as numpy or scipy, so that we could take advantage of the GPU, if available. As demonstrated in \autoref{fig:comparison}, the GPU implementation is more than an order of magnitude faster than any other implementation. Although not explored here, the GPU implementation also allows for batch processing which can enable further speedup. 
 
-In order to ensure the fidelity of the functions run internally, we wrote custom torch implementations of the following: `block_replicate_torch`, `convolve`, `median_filter_torch`, `dilation_pytorch`, `sigma_clip_pytorch`. In case a user is unable to enable C++, we allow the code to default to the custom torch implementations of the median filter and dilation algorithms; we note that this leads to a worse performance as compared to the C++ implementations.
+In order to ensure the fidelity of the functions run internally, we wrote custom torch implementations of the following: `block_replicate_torch`, `convolve`, `median_filter_torch`, `sigma_clip_pytorch`. The growing of the cosmic ray mask (dilation) is implemented as a convolution. If the C++ median filter has not been built, the code uses the torch implementation of the median filter, which gives identical results; we note that this leads to a worse performance on the CPU as compared to the C++ implementation.
 
 
 # Research impact statement
@@ -95,7 +95,7 @@ The algorithm follows the methodology described in detail in [@van_dokkum_cosmic
 6. Determine which neighboring pixels to include
 7. Replace cosmic rays with median of neighbors
 
-Importantly, we use the classic median filter rather than any optimized version. We overcome the additional computational costs associated with this computation by implementing our methodology in `PyTorch` [@paszke_pytorch_2019] with certain functions (the median filter and dilation) written in C++.
+Importantly, we use the classic median filter rather than any optimized version. We overcome the additional computational costs associated with this computation by implementing our methodology in `PyTorch` [@paszke_pytorch_2019] with the median filter optionally running in C++ on the CPU.
 
 ## Main parameters
 There are several key parameters that a user can set depending on their specific use case:
@@ -104,7 +104,7 @@ There are several key parameters that a user can set depending on their specific
 2. `sigfrac`: the fractional detection limit for neighboring pixels
 3. `sigclip`: the detection limit for cosmic rays
 
-Furthermore, the user can supply the gain and readnoise. If a gain is not supplied, then it will be estimated at each iteration.
+Furthermore, the user can supply the gain and readnoise. If a gain is not supplied, then it will be estimated at each iteration, as in the original implementation; this requires that the sky background has not been subtracted from the image.
 
 # Results
 
@@ -116,15 +116,13 @@ In order to showcase `dfcosmic`, we apply it, along with `astroscrappy` and `lac
 As demonstrated in \autoref{fig:demo}, the only Python implementation that replicates the mask from the original IRAF implementation is `dfcosmic`. By comparison, the other two popular implementation either underestimate (`astroscrappy`) or overestimate (Bradley's `lacosmic`) the size of the CRs in stars. An incorrect masking of CRs in these regions  can have a profound effect on the measured stellar photometries.
 
 # AI usage disclosure
-Generative AI was used for two aspects of this project:
+Generative AI was used for the following parts of this project:
 
-1. Claude.ai was used to help write/augment the unit tests and understand the original IRAF implementation.
+1. Claude (Claude.ai and Claude Code) was used to help write the unit tests and to understand the original IRAF implementation.
+2. ChatGPT/Codex was used to write the C++ median filter and to make the code more memory efficient.
+3. Claude Code was used to help implement the changes requested during the pyOpenSci review: packaging and continuous integration, input validation, the handling of non-finite and unrepairable pixels, the per-iteration gain estimate, and documentation.
 
-2. ChatGPT was used to write the C++ code for the median filter function
-
-All code produced by AI was manually inspected for correctness.
-
-The core functionality was not influenced by AI.
+The original implementation of the algorithm was written by the authors without AI. All code produced by AI was manually inspected for correctness.
 
 
 # Acknowledgements
