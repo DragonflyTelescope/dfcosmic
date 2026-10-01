@@ -12,6 +12,7 @@ from dfcosmic.utils import (
     median_filter_cpp_torch,
     median_filter_torch,
     sigma_clip_pytorch,
+    warn_cpp_median_unavailable,
 )
 
 try:
@@ -73,7 +74,7 @@ def lacosmic(
     readnoise: float = 0.0,
     device: str = "cpu",
     cpu_threads: int | None = None,
-    use_cpp: bool = True,
+    use_cpp: bool | None = None,
     verbose: bool = False,
     rss_debug: bool = False,
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -102,8 +103,13 @@ def lacosmic(
         The device to use for computation. Default is "cpu".
     cpu_threads : int | None
         Number of cpu threads to use. Default is None.
-    use_cpp : bool
-        Boolean to use cpp optimized median filter and dilation algorithms. Default is True.
+    use_cpp : bool | None
+        Whether to use the optional C++ median filter on the CPU. The extension is not
+        part of the PyPI wheel; it has to be built from source (see the installation
+        instructions). Default is None, which uses the extension if it is available
+        and the torch median filter otherwise. True does the same but emits a warning
+        (once per session) if the extension is not available. False always uses the
+        torch median filter. Ignored when running on a GPU.
     verbose : bool
         Print iteration progress. Default is False.
     rss_debug : bool
@@ -125,14 +131,18 @@ def lacosmic(
     For CPU performance:
     - Use gain parameter if known to avoid gain estimation overhead
     - Set niter=1 for faster processing (at cost of potentially detecting fewer cosmic rays)
-    - set use_cpp=True to enable C++ implementations of the median filter and dilation functions
+    - Build the optional C++ median filter (see the installation instructions); it is
+      used automatically once available
 
     For best performance, use CUDA-enabled GPU by setting device='cuda'.
     """
 
     device = torch.device(device)
 
-    use_cpp_median = use_cpp and device.type == "cpu" and cpp_median_available()
+    want_cpp_median = use_cpp is not False and device.type == "cpu"
+    use_cpp_median = want_cpp_median and cpp_median_available()
+    if use_cpp and want_cpp_median and not use_cpp_median:
+        warn_cpp_median_unavailable()
 
     cpu_thread_ctx = nullcontext()
     if device.type == "cpu" and cpu_threads is not None:

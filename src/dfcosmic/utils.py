@@ -1,4 +1,5 @@
 import os
+import warnings
 
 import torch
 import torch.nn.functional as F
@@ -92,17 +93,36 @@ def _median_filter_chunk_rows(
     )
 
 
+_CPP_BUILD_HINT = (
+    "The C++ median filter is an opt-in source build: install torch and a C++ "
+    "compiler, then run `pip install --no-build-isolation .` from a dfcosmic checkout."
+)
+
+# The extension is optional and tied to the torch version it was compiled against,
+# so both a missing module and a failed load (e.g. after a torch upgrade) end up here.
 try:
-    import median_filter_cpp
+    import dfcosmic._median_filter_cpp as median_filter_cpp
 
     _CPP_MEDIAN_AVAILABLE = not _DISABLE_CPP
-except Exception:
+    _CPP_MEDIAN_UNAVAILABLE_REASON = (
+        "it is disabled by the DFCOSMIC_DISABLE_CPP environment variable."
+        if _DISABLE_CPP
+        else None
+    )
+except ModuleNotFoundError as exc:
     _CPP_MEDIAN_AVAILABLE = False
+    if exc.name == "dfcosmic._median_filter_cpp":
+        _CPP_MEDIAN_UNAVAILABLE_REASON = f"it was not built. {_CPP_BUILD_HINT}"
+    else:
+        _CPP_MEDIAN_UNAVAILABLE_REASON = f"it failed to load ({exc}). {_CPP_BUILD_HINT}"
+except Exception as exc:
+    _CPP_MEDIAN_AVAILABLE = False
+    _CPP_MEDIAN_UNAVAILABLE_REASON = (
+        f"it failed to load ({exc}). It must be rebuilt against the installed "
+        f"torch version. {_CPP_BUILD_HINT}"
+    )
 
-try:
-    _CPP_DILATION_AVAILABLE = not _DISABLE_CPP
-except Exception:
-    _CPP_DILATION_AVAILABLE = False
+_CPP_FALLBACK_WARNED = False
 
 
 def _process_block_inputs(
@@ -350,7 +370,10 @@ def median_filter_cpp_torch(
         return median_filter_torch(image, kernel_size=kernel_size, zloreject=zloreject)
 
     if not _CPP_MEDIAN_AVAILABLE:
-        raise RuntimeError("median_filter_cpp extension is not available")
+        raise RuntimeError(
+            "The C++ median filter extension is not available because "
+            f"{_CPP_MEDIAN_UNAVAILABLE_REASON}"
+        )
     if image.device.type != "cpu":
         raise ValueError("median_filter_cpp_torch requires a CPU tensor")
     if image.dtype != torch.float32:
@@ -401,3 +424,18 @@ def sigma_clip_pytorch(
 
 def cpp_median_available() -> bool:
     return _CPP_MEDIAN_AVAILABLE
+
+
+def warn_cpp_median_unavailable() -> None:
+    """Warn, once per session, that the torch median filter is used instead of C++."""
+    global _CPP_FALLBACK_WARNED
+    if _CPP_MEDIAN_AVAILABLE or _CPP_FALLBACK_WARNED:
+        return
+    _CPP_FALLBACK_WARNED = True
+    warnings.warn(
+        "use_cpp=True was requested but the C++ median filter extension is not "
+        f"available because {_CPP_MEDIAN_UNAVAILABLE_REASON} Falling back to the "
+        "slower torch median filter; the results are identical.",
+        RuntimeWarning,
+        stacklevel=3,
+    )

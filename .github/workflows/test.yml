@@ -7,13 +7,35 @@ on:
     branches: [master, main]
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Same ruff version and scope as .pre-commit-config.yaml
+      - name: Ruff
+        run: |
+          python -m pip install "ruff==0.9.5"
+          ruff check src
+          ruff format --check src
+
   test:
+    name: test (py${{ matrix.python-version }}${{ matrix.minimum-deps && ', minimum deps' || '' }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        include:
+          # Oldest dependency versions allowed by pyproject.toml
+          - os: ubuntu-latest
+            python-version: "3.10"
+            minimum-deps: true
 
     steps:
       - uses: actions/checkout@v4
@@ -28,11 +50,16 @@ jobs:
           python -m pip install --upgrade pip
 
           # Force CPU-only PyTorch so pip doesn't download CUDA wheels (nvidia-*)
-          python -m pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch
+          python -m pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu ${{ matrix.minimum-deps && 'torch==2.1.0' || 'torch' }}
 
-          # Now install your package + test deps
+          # Now install your package + test deps, the way the README documents it.
+          # This is the default pure-Python install (no C++ extension).
           python -m pip install --no-cache-dir -e .
           python -m pip install --no-cache-dir "pytest>=8.3.4" "pytest-cov>=6.0.0"
+
+      - name: Pin minimum dependency versions
+        if: matrix.minimum-deps
+        run: python -m pip install --no-cache-dir "numpy==1.24.0" "threadpoolctl==3.1.0"
 
       - name: Run tests with coverage
         run: |
@@ -45,3 +72,38 @@ jobs:
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
+
+  test-cpp:
+    # Installs the optional C++ median filter the way the README documents it and
+    # checks that it was really built and matches the torch median filter.
+    name: test C++ extension (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install with the C++ extension
+        env:
+          DFCOSMIC_BUILD_CPP: "1"
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch
+          python -m pip install --no-cache-dir "setuptools>=77"
+          python -m pip install --no-cache-dir --no-build-isolation -e .
+          python -m pip install --no-cache-dir "pytest>=8.3.4" "pytest-cov>=6.0.0"
+
+      - name: Check that the extension is available
+        run: python -c "import dfcosmic.utils as u; assert u.cpp_median_available(), u._CPP_MEDIAN_UNAVAILABLE_REASON"
+
+      - name: Run tests
+        env:
+          DFCOSMIC_REQUIRE_CPP: "1"
+        run: pytest

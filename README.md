@@ -28,19 +28,37 @@ cd dfcosmic
 pip install -e .
 ```
 
-Note: the CPU extensions (median filter + dilation) are compiled during install for speed. This requires a working C++ toolchain. If you need to pass custom OpenMP flags, you can do so via environment variables, for example:
-
-```bash
-export CXXFLAGS="-O3 -fopenmp -march=native"
-export LDFLAGS="-fopenmp"
-pip install -e .
-```
+Both of these give you a pure-Python install that runs entirely on PyTorch (CPU or GPU). The plots in the demo notebooks need a few extra packages, which you can get with `pip install "dfcosmic[notebooks]"`.
 
 For development installation with documentation dependencies:
 
 ```bash
 pip install -e ".[docs]"
 ```
+
+### Optional: C++ median filter for the CPU
+
+On the CPU, most of the runtime is spent in the median filter. `dfcosmic` includes an optional C++/OpenMP median filter that gives identical results to the PyTorch one but is faster. It is **not** part of the PyPI wheel and is **not** built by a plain `pip install`, because it has to be compiled against the PyTorch version you have installed. To build it you need a C++ compiler with OpenMP support and PyTorch installed *before* building. On macOS the Xcode command line tools are enough: the extension links against the OpenMP runtime bundled with the PyTorch wheel, so do not point the build at a separate `libomp` (e.g. Homebrew's) via `LDFLAGS` — two OpenMP runtimes in one process will crash.
+
+```bash
+pip install torch "setuptools>=77"
+git clone https://github.com/DragonflyTelescope/dfcosmic.git
+cd dfcosmic
+DFCOSMIC_BUILD_CPP=1 pip install --no-build-isolation -e .
+```
+
+`--no-build-isolation` is what makes your installed PyTorch visible to the build; `DFCOSMIC_BUILD_CPP=1` turns a missing PyTorch into an error rather than silently skipping the extension. You can check that it worked with
+
+```bash
+python -c "from dfcosmic.utils import cpp_median_available; print(cpp_median_available())"
+```
+
+Once built, the extension is used automatically when `device="cpu"`. A few things to keep in mind:
+
+- The extension is tied to the PyTorch version it was built against. After upgrading PyTorch, rebuild it by re-running the `pip install` command above.
+- If the extension is not available, `dfcosmic` uses the PyTorch median filter. Passing `use_cpp=True` explicitly will warn you (once per session) when that happens; `use_cpp=False` always uses the PyTorch median filter.
+- If you want CPU-specific optimizations, you can pass extra compiler flags, e.g. `CXXFLAGS="-march=native"`. The resulting binary will then only run on similar CPUs.
+- Setting the environment variable `DFCOSMIC_DISABLE_CPP=1` at runtime disables the extension.
 
 ## Basic Usage
 We follow the same parameter naming conventions presented in the original IRAF code.
@@ -85,7 +103,7 @@ For the tightest runners, also set `cpu_threads=1` when calling `lacosmic(...)`.
 ![Example](demos/example_hst.png)
 
 ## Timing Comparisons
-We compare our pytorch implementation running on either a CPU (torch), CPU (torch & c++) or GPU with two popular cosmic ray removal codes: [lacosmic](https://github.com/larrybradley/lacosmic) and [astroscrappy](https://github.com/astropy/astroscrappy).
+We compare our pytorch implementation running on either a CPU (torch), CPU (torch & the [optional C++ median filter](#optional-c-median-filter-for-the-cpu)) or GPU with two popular cosmic ray removal codes: [lacosmic](https://github.com/larrybradley/lacosmic) and [astroscrappy](https://github.com/astropy/astroscrappy).
 
 In order to run this timing comparison, we use the synthetic data described (and created) in the [astroscrappy testing suite](https://github.com/astropy/astroscrappy/blob/main/astroscrappy/tests/fake_data.py). The full notebook can be found in [demos/Comparison.ipynb](./demos/Comparison.ipynb).
 
@@ -99,7 +117,7 @@ The unit tests can be run using the following command:
 pytest
 ```
 
-The default settings are in the `pytest.ini` file.
+The default settings are in the `[tool.pytest.ini_options]` section of `pyproject.toml`. The tests for the C++ median filter are skipped unless the extension has been built.
 
 ## Contributing
 
@@ -112,7 +130,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 5. Open a Pull Request
 
 ## Citation
-If you use this package, please include a reference to the GitHub repository and the following Zenodo DOI: 10.5281/zenodo.18451351
+If you use this package, please include a reference to the GitHub repository and the following Zenodo DOI: 10.5281/zenodo.18451351. Citation metadata is also available in [CITATION.cff](CITATION.cff) (the "Cite this repository" button on GitHub).
 
 
 

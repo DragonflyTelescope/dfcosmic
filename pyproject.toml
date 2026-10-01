@@ -1,10 +1,12 @@
 [build-system]
-requires = ["setuptools>=61", "wheel"]
+# torch is deliberately not a build requirement: the C++ median filter is an opt-in
+# source build (see README), and the wheels published to PyPI are pure Python.
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "dfcosmic"
-version = "0.0.1"
+version = "0.1.0"
 dynamic = []
 authors = [
   { name = "Carter Rhea", email = "carter.rhea@dragonfly1000.com" },
@@ -19,23 +21,37 @@ authors = [
 description = "A high-performance Python package for cosmic ray removal following the original paper by van Dokkum 2001."
 readme = "README.md"
 requires-python = ">=3.10"
+license = "GPL-3.0-only"
+license-files = ["LICENSE"]
 
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Science/Research",
   "Topic :: Scientific/Engineering :: Astronomy",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: C++",
   "Operating System :: OS Independent",
 ]
 
 dependencies = [
-  "numpy>=1.17.0",
-  "torch>=1.9.0",
-  "matplotlib>=3.10.7",
-  "cmcrameri>=1.9"
+  # Lower bounds are exercised by the "minimum dependencies" CI job.
+  "numpy>=1.24.0",
+  "torch>=2.1.0",
+  "threadpoolctl>=3.1.0",
 ]
 
 [project.optional-dependencies]
+# Only needed to run the notebooks in demos/
+notebooks = [
+  "matplotlib>=3.10.7",
+  "cmcrameri>=1.9",
+]
 docs = [
   "sphinx>=5.0.0",
   "sphinx-autoapi>=2.0.0",
@@ -43,6 +59,9 @@ docs = [
   "ipykernel>=6.0.0",
   "sphinx-copybutton==0.5.2",
   "sphinx-nefertiti==0.8.10",
+  # nbsphinx may execute the demo notebooks
+  "matplotlib>=3.10.7",
+  "cmcrameri>=1.9",
 ]
 
 [dependency-groups]
@@ -54,6 +73,7 @@ dev = [
 
 [project.urls]
 Homepage = "https://github.com/DragonflyTelescope/dfcosmic"
+Documentation = "https://dfcosmic.readthedocs.io"
 Issues = "https://github.com/DragonflyTelescope/dfcosmic/issues"
 
 [tool.setuptools]

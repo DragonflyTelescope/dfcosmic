@@ -1,79 +1,90 @@
-name: Build Wheels
+name: Build and publish
 
 on:
   push:
     branches: [master]
     tags:
       - 'v*'
+  pull_request:
+    branches: [master]
 
   release:
     types: [published]
 
 jobs:
-  build_wheels:
-    name: Build wheels on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['3.10', '3.11', '3.12']
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install build wheel torch
-
-      - name: Build wheel
-        run: python -m build --wheel
-
-      - name: Upload wheels
-        uses: actions/upload-artifact@v4
-        with:
-          name: wheels-${{ matrix.os }}-py${{ matrix.python-version }}
-          path: dist/*.whl
-
-  build_sdist:
-    name: Build source distribution
+  build:
+    name: Build sdist and wheel
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build sdist
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # The published wheel is pure Python. The C++ median filter is an opt-in
+      # source build (see README), so it is explicitly skipped here.
+      - name: Build sdist and wheel
+        env:
+          DFCOSMIC_BUILD_CPP: "0"
         run: |
-          python -m pip install build
-          python -m build --sdist
+          python -m pip install --upgrade pip
+          python -m pip install build twine
+          python -m build
+          twine check --strict dist/*
+
+      - name: Check the distributions
+        run: |
+          ls -l dist
+          # exactly one pure-Python wheel, and the C++ source ships in the sdist
+          test "$(ls dist/*.whl | wc -l)" -eq 1
+          ls dist/dfcosmic-*-py3-none-any.whl
+          tar -tzf dist/*.tar.gz | grep -q 'csrc/median_filter.cpp$'
+
+      - name: Smoke test the wheel
+        run: |
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
+          python -m pip install dist/*.whl
+          cd "$RUNNER_TEMP"
+          python -c "import dfcosmic; print(dfcosmic.__version__); from dfcosmic import lacosmic"
+
+      - name: Check that the version matches the tag and is new on PyPI
+        if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/v')
+        run: |
+          version="$(cd "$RUNNER_TEMP" && python -c 'import dfcosmic; print(dfcosmic.__version__)')"
+          tag="${GITHUB_REF_NAME#v}"
+          if [ "$version" != "$tag" ]; then
+            echo "::error::Package version ($version) does not match the tag ($GITHUB_REF_NAME). Bump the version in pyproject.toml."
+            exit 1
+          fi
+          status="$(curl -s -o /dev/null -w '%{http_code}' "https://pypi.org/pypi/dfcosmic/$version/json")"
+          if [ "$status" = "200" ]; then
+            echo "::error::dfcosmic $version is already on PyPI. Bump the version in pyproject.toml."
+            exit 1
+          fi
 
       - uses: actions/upload-artifact@v4
         with:
-          name: sdist
-          path: dist/*.tar.gz
+          name: dist
+          path: dist/*
 
   upload_pypi:
-    needs: [build_wheels, build_sdist]
+    needs: [build]
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'published'
+    # Trusted Publishing: no long-lived API token. Requires a "trusted publisher" for
+    # this repository, workflow file and environment to be configured on PyPI.
+    environment:
+      name: pypi
+      url: https://pypi.org/project/dfcosmic/
+    permissions:
+      id-token: write
 
     steps:
       - uses: actions/download-artifact@v4
         with:
-          pattern: wheels-*
-          merge-multiple: true
-          path: dist
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: sdist
+          name: dist
           path: dist
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}

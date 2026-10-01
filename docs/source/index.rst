@@ -35,9 +35,9 @@ Runtime Options
 ---------------
 There are three runtime options. We list them below in order of speed from the slowest to the fastest implementation:
 
-1. CPU pure PyTorch: this implementation uses only PyTorch for all functions and can be called by adding the argument `use_cpp=False`.
+1. CPU pure PyTorch: this implementation uses only PyTorch for all functions. This is what you get on the CPU after ``pip install dfcosmic``. It can be forced by adding the argument `use_cpp=False`.
 
-2. CPU Pytorch & C++: this implementation uses Pytorch combined with the median filter implemented in C++ for speed optimizations. This is the default behavior when `device='cpu'`.
+2. CPU Pytorch & C++: this implementation uses Pytorch combined with the median filter implemented in C++ for speed optimizations. The C++ median filter is optional and has to be built from source (see :doc:`csrc`); once built, it is used automatically when `device='cpu'`. Passing `use_cpp=True` emits a warning if it is not available.
 
 3. GPU: this implementation uses PyTorch only and runs on the GPU. This runs when `device='cuda'` is set.
 
