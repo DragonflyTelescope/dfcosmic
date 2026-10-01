@@ -354,6 +354,51 @@ def median_filter_torch(
     return filtered
 
 
+def fill_from_unflagged_neighbors(
+    image: torch.Tensor,
+    fill_mask: torch.Tensor,
+    flagged_mask: torch.Tensor,
+    kernel_size: int = 5,
+) -> torch.Tensor:
+    """
+    Replace, in place, the pixels in ``fill_mask`` by the median of the pixels in
+    their ``kernel_size`` window that are not in ``flagged_mask``.
+
+    This is the repair rule for pixels where more than half of the window is flagged,
+    for which a median over the whole window is not defined. If a window contains no
+    unflagged pixel at all it is grown by one pixel on each side until it does. For an
+    even number of unflagged pixels the lower of the two middle values is used, as in
+    ``torch.median``. Image edges are handled by replication, as in the median filter.
+    """
+    h, w = image.shape
+    ys, xs = torch.nonzero(fill_mask, as_tuple=True)
+    values = torch.zeros(ys.shape, dtype=image.dtype, device=image.device)
+    todo = torch.arange(ys.numel(), device=image.device)
+
+    radius = kernel_size // 2
+    while todo.numel() > 0 and radius < max(h, w):
+        offsets = torch.arange(-radius, radius + 1, device=image.device)
+        yy = (ys[todo, None, None] + offsets[None, :, None]).clamp(0, h - 1)
+        xx = (xs[todo, None, None] + offsets[None, None, :]).clamp(0, w - 1)
+        window = image[yy, xx].reshape(todo.numel(), -1)
+        flagged = flagged_mask[yy, xx].reshape(todo.numel(), -1)
+        del yy, xx
+
+        # Sort the unflagged values first, then pick their (lower) median
+        n_good = (~flagged).sum(dim=1)
+        window = window.masked_fill(flagged, torch.inf).sort(dim=1).values
+        median_idx = ((n_good - 1) // 2).clamp(min=0)
+        median = window.gather(1, median_idx[:, None])[:, 0]
+
+        found = n_good > 0
+        values[todo[found]] = median[found]
+        todo = todo[~found]
+        radius += 1
+
+    image[ys, xs] = values
+    return image
+
+
 def median_filter_cpp_torch(
     image: torch.Tensor,
     kernel_size: int = 3,
