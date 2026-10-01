@@ -140,6 +140,10 @@ export DFCOSMIC_MAX_MEMORY_MB=2048
 
 For the tightest runners, also set `cpu_threads=1` when calling `lacosmic(...)`.
 
+### Limiting CPU threads
+
+`cpu_threads` limits the number of CPU threads for the duration of the call only. The thread settings of PyTorch and of the other OpenMP/BLAS thread pools in the process are restored when `lacosmic` returns, and no environment variables are changed, so the rest of your program is not affected. If `cpu_threads` is not given, `lacosmic` uses whatever the process is already configured to use (e.g. `torch.get_num_threads()`).
+
 ## Simple Example
 
 ![Example](demos/example_hst.png)

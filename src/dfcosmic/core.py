@@ -5,6 +5,7 @@ from time import perf_counter
 
 import numpy as np
 import torch
+from threadpoolctl import threadpool_limits
 
 from dfcosmic.utils import (
     convolve,
@@ -16,13 +17,6 @@ from dfcosmic.utils import (
     sigma_clip_pytorch,
     warn_cpp_median_unavailable,
 )
-
-try:
-    from threadpoolctl import threadpool_limits
-
-    _THREADPOOLCTL_AVAILABLE = True
-except Exception:
-    _THREADPOOLCTL_AVAILABLE = False
 
 _KERNEL_CACHE: dict[
     tuple[str, torch.dtype],
@@ -108,7 +102,11 @@ def lacosmic(
         The device to use for computation, e.g. "cpu", "cuda" (NVIDIA GPU) or "mps"
         (Apple Silicon GPU). Default is "cpu".
     cpu_threads : int | None
-        Number of cpu threads to use. Default is None.
+        Number of CPU threads to use when ``device="cpu"``. The limit applies only
+        for the duration of the call: the thread settings of torch and of the other
+        OpenMP/BLAS thread pools in the process are restored afterwards, and no
+        environment variables are changed. Default is None, which uses the current
+        settings of the process (e.g. ``torch.get_num_threads()``).
     use_cpp : bool | None
         Whether to use the optional C++ median filter on the CPU. The extension is not
         part of the PyPI wheel; it has to be built from source (see the installation
@@ -207,15 +205,18 @@ def lacosmic(
     if use_cpp and want_cpp_median and not use_cpp_median:
         warn_cpp_median_unavailable()
 
+    # Limit the CPU threads for the duration of this call only. torch's own pool is
+    # set (and restored in the finally block below) through torch; threadpoolctl
+    # covers the other OpenMP/BLAS pools in the process, including the one used by
+    # the C++ median filter, and restores them when the context exits.
     cpu_thread_ctx = nullcontext()
+    prev_torch_threads = None
     if device.type == "cpu" and cpu_threads is not None:
+        if cpu_threads < 1:
+            raise ValueError(f"cpu_threads must be at least 1, but got {cpu_threads}")
+        prev_torch_threads = torch.get_num_threads()
         torch.set_num_threads(cpu_threads)
-        os.environ["OMP_NUM_THREADS"] = str(cpu_threads)
-        os.environ["MKL_NUM_THREADS"] = str(cpu_threads)
-        os.environ["OPENBLAS_NUM_THREADS"] = str(cpu_threads)
-        os.environ["NUMEXPR_NUM_THREADS"] = str(cpu_threads)
-        if _THREADPOOLCTL_AVAILABLE:
-            cpu_thread_ctx = threadpool_limits(limits=cpu_threads)
+        cpu_thread_ctx = threadpool_limits(limits=cpu_threads)
 
     prev_rss_env = os.environ.get("DFCOSMIC_RSS_DEBUG")
     if rss_debug:
@@ -285,7 +286,6 @@ def lacosmic(
             if rss_debug:
                 _log_rss("after final_crmask allocation")
             if device.type == "cpu":
-                torch.backends.mkldnn.enabled = True
                 median_filter_fn = (
                     median_filter_cpp_torch if use_cpp_median else median_filter_torch
                 )
@@ -519,6 +519,8 @@ def lacosmic(
             _log_rss("before cpu().numpy() return")
         return clean_image.cpu().numpy(), final_crmask.cpu().numpy()
     finally:
+        if prev_torch_threads is not None:
+            torch.set_num_threads(prev_torch_threads)
         if rss_debug:
             if prev_rss_env is None:
                 os.environ.pop("DFCOSMIC_RSS_DEBUG", None)
