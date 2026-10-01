@@ -1,3 +1,4 @@
+import math
 import os
 from contextlib import nullcontext
 from time import perf_counter
@@ -86,7 +87,9 @@ def lacosmic(
     Parameters
     ----------
     image : torch.Tensor|np.ndarray
-        The input image.
+        The input image. Must be 2D. Numpy arrays of any dtype, byte order and memory
+        layout are accepted (e.g. big-endian data straight from ``astropy.io.fits``).
+        The input is never modified.
     sigclip : float
         The detection limit for cosmic rays (sigma). Default is 4.5.
     sigfrac : float
@@ -118,13 +121,29 @@ def lacosmic(
     Returns
     -------
         np.ndarray
-            The image with cosmic rays removed.
+            The image with cosmic rays removed, as float32.
         np.ndarray
-            The mask indicating the cosmic rays.
+            The boolean mask indicating the cosmic rays.
+
+    Raises
+    ------
+    ValueError
+        If the image is not 2D, if it contains no finite pixels, or if the gain
+        cannot be estimated.
 
     Notes
     -----
     If the gain is set to zero (or not provided), then we compute it assuming sky-dominated noise and poisson statistics.
+
+    All computations are done in single precision: the input is cast to float32 and
+    the cleaned image is returned as float32, whatever the input dtype (including
+    float64).
+
+    Non-finite pixels (NaN and +/-inf, e.g. bad pixels flagged in a reduced frame) are
+    ignored: they are excluded from the gain estimate, are never flagged as cosmic
+    rays, and are returned unchanged in the cleaned image. Internally they are
+    replaced by the median of the finite pixels so that they do not affect the
+    detection or the repair of neighbouring pixels.
 
     Performance Tips
     ----------------
@@ -163,10 +182,20 @@ def lacosmic(
             if rss_debug:
                 _log_rss("start")
             # Move/cast to torch
-            if isinstance(image, np.ndarray):
-                image_t = torch.from_numpy(image).to(device).float().contiguous()
-            else:
+            if isinstance(image, torch.Tensor):
                 image_t = image.to(device).float().contiguous()
+            else:
+                # torch.from_numpy rejects non-native byte order (FITS data is
+                # big-endian) and negative strides, so normalise the array first.
+                image_np = np.ascontiguousarray(image, dtype=np.float32)
+                image_t = torch.from_numpy(image_np).to(device).contiguous()
+                del image_np
+            if image_t.ndim != 2:
+                raise ValueError(
+                    "image must be a 2D array, but got an array with "
+                    f"{image_t.ndim} dimension(s) and shape {tuple(image_t.shape)}. "
+                    "Process each 2D frame separately."
+                )
             if rss_debug:
                 _log_rss("after input cast/to(device)")
 
@@ -179,6 +208,22 @@ def lacosmic(
             del image_t
             if rss_debug:
                 _log_rss("after clean_image clone")
+
+            # Non-finite pixels (NaN/inf) would poison the gain estimate and every
+            # median window they fall in. Replace them with the median of the finite
+            # pixels while running, and restore them in the output.
+            bad_mask = ~torch.isfinite(clean_image)
+            if bad_mask.any():
+                good_values = clean_image[~bad_mask]
+                if good_values.numel() == 0:
+                    raise ValueError("image contains no finite pixels")
+                bad_values = clean_image[bad_mask]
+                clean_image[bad_mask] = good_values.median()
+                del good_values
+                if verbose:
+                    print(f"Ignoring {bad_values.numel()} non-finite pixels")
+            else:
+                bad_mask = None
 
             final_crmask = torch.zeros(
                 clean_image.shape, dtype=torch.bool, device=device
@@ -211,13 +256,17 @@ def lacosmic(
                             print("Improving gain estimate:")
 
                         sky_level = sigma_clip_pytorch(
-                            clean_image, sigma=5, maxiters=10
+                            clean_image if bad_mask is None else clean_image[~bad_mask],
+                            sigma=5,
+                            maxiters=10,
                         )[1]["median"]
                         med7 = median_filter_fn(clean_image, kernel_size=7)
                         residuals = clean_image - med7
                         del med7
                         abs_residuals = torch.abs(residuals)
                         del residuals
+                        if bad_mask is not None:
+                            abs_residuals = abs_residuals[~bad_mask]
                         mad = sigma_clip_pytorch(abs_residuals, sigma=5, maxiters=10)[
                             1
                         ]["median"]
@@ -230,13 +279,13 @@ def lacosmic(
                             print(f"  Estimated gain = {sky_level / (sig**2):.2f}")
                             print("")
 
-                        if sig == 0:
+                        if sig == 0 or not math.isfinite(sig):
                             raise ValueError(
                                 "Gain determination failed - provide estimate of gain manually. "
                                 f"Sky level: {sky_level:.2f}, Sigma: {sig:.2f}"
                             )
                         gain = sky_level / (sig**2)
-                        if gain <= 0:
+                        if gain <= 0 or not math.isfinite(gain):
                             raise ValueError(
                                 "Gain determination failed - provide estimate of gain manually. "
                                 f"Sky level: {sky_level:.2f}, Sigma: {sig:.2f}"
@@ -334,6 +383,8 @@ def lacosmic(
                     finalsel = finalsel * sigmap
                     finalsel = (finalsel > sigcliplow).to(sigmap.dtype)
                     del sigmap
+                    if bad_mask is not None:
+                        finalsel[bad_mask] = 0
                     if rss_debug:
                         _log_rss(f"iter {iteration + 1} after second grow")
 
@@ -380,6 +431,8 @@ def lacosmic(
 
                     del tmp, finalsel, noise
 
+        if bad_mask is not None:
+            clean_image[bad_mask] = bad_values
         if rss_debug:
             _log_rss("before cpu().numpy() return")
         return clean_image.cpu().numpy(), final_crmask.cpu().numpy()
