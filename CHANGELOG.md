@@ -11,6 +11,8 @@ All notable changes to dfcosmic are listed here. The format follows [Keep a Chan
 
 ### Fixed
 
+- `cpu_threads` no longer changes settings for the whole process. The thread count of torch is restored after the call, the `OMP_NUM_THREADS`, `MKL_NUM_THREADS`, `OPENBLAS_NUM_THREADS` and `NUMEXPR_NUM_THREADS` environment variables are no longer written, and `torch.backends.mkldnn.enabled` is no longer switched on.
+- `cpu_threads` smaller than 1 now raises a `ValueError`.
 - The cleaned image could contain placeholder values (up to 4.4e19) at flagged pixels where more than half of the 5x5 window was flagged. These pixels are now set to the median of their unflagged neighbours. The mask is unchanged.
 - A NaN or infinite pixel silently gave an empty mask when the gain was estimated, and NaN at every repaired pixel when the gain was given. Non-finite pixels are now ignored and returned unchanged.
 - Big-endian arrays (e.g. from `astropy.io.fits`) and arrays with negative strides raised an error.
