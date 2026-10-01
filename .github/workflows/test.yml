@@ -55,7 +55,7 @@ jobs:
           # Now install your package + test deps, the way the README documents it.
           # This is the default pure-Python install (no C++ extension).
           python -m pip install --no-cache-dir -e .
-          python -m pip install --no-cache-dir "pytest>=8.3.4" "pytest-cov>=6.0.0"
+          python -m pip install --no-cache-dir "pytest>=8.3.4" "pytest-cov>=6.0.0" astropy
 
       - name: Pin minimum dependency versions
         if: matrix.minimum-deps
@@ -98,7 +98,7 @@ jobs:
           python -m pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch
           python -m pip install --no-cache-dir "setuptools>=77"
           python -m pip install --no-cache-dir --no-build-isolation -e .
-          python -m pip install --no-cache-dir "pytest>=8.3.4" "pytest-cov>=6.0.0"
+          python -m pip install --no-cache-dir "pytest>=8.3.4" "pytest-cov>=6.0.0" astropy
 
       - name: Check that the extension is available
         run: python -c "import dfcosmic.utils as u; assert u.cpp_median_available(), u._CPP_MEDIAN_UNAVAILABLE_REASON"

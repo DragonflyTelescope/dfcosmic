@@ -9,6 +9,7 @@ import torch
 from dfcosmic.utils import (
     convolve,
     cpp_median_available,
+    fill_from_unflagged_neighbors,
     laplacian_pool_chunked,
     median_filter_cpp_torch,
     median_filter_torch,
@@ -145,6 +146,16 @@ def lacosmic(
     replaced by the median of the finite pixels so that they do not affect the
     detection or the repair of neighbouring pixels.
 
+    Flagged pixels are repaired with a 5x5 median in which flagged pixels are treated
+    as very high values, so that a repaired pixel takes the value of one of its
+    unflagged neighbours. When more than half of the 5x5 window is flagged (the
+    interior of a large cosmic ray hit) this median is not defined. Such a pixel is
+    kept marked as unrepaired between iterations and, in the returned image, is set to
+    the median of the unflagged pixels in its 5x5 window (the window is grown until it
+    contains at least one unflagged pixel). The returned image therefore never
+    contains placeholder values: every repaired pixel is the value of an unflagged
+    pixel of the input image.
+
     Performance Tips
     ----------------
     For CPU performance:
@@ -224,6 +235,16 @@ def lacosmic(
                     print(f"Ignoring {bad_values.numel()} non-finite pixels")
             else:
                 bad_mask = None
+
+            # Placeholder for flagged pixels in the repair median. It is fixed for
+            # the whole run and only ever lives in the working image: pixels still
+            # holding it at the end are filled in before returning.
+            sentinel = min(
+                clean_image.abs().max().item() * 1e4 + 1e6,
+                torch.finfo(clean_image.dtype).max,
+            )
+            # Round to the working precision so it can be compared exactly later
+            sentinel = torch.tensor(sentinel, dtype=clean_image.dtype).item()
 
             final_crmask = torch.zeros(
                 clean_image.shape, dtype=torch.bool, device=device
@@ -415,9 +436,12 @@ def lacosmic(
                         )
                         print("")
 
-                    # Create cleaned output image using 5x5 median
+                    # Create cleaned output image using 5x5 median. Flagged pixels
+                    # sort last, so the median is the value of an unflagged neighbour
+                    # unless more than half of the window is flagged. In that case it
+                    # is the sentinel itself: the pixel stays marked as unrepaired for
+                    # the next iteration and is filled in after the last one.
                     tmp = clean_image.clone()
-                    sentinel = clean_image.max() * 1e4 + 1e6
                     tmp[final_crmask] = sentinel
                     tmp = median_filter_fn(tmp, kernel_size=5)
                     # Only use the median at CR locations
@@ -431,6 +455,12 @@ def lacosmic(
 
                     del tmp, finalsel, noise
 
+        # Repair the pixels whose 5x5 window was mostly flagged, so that the
+        # sentinel never reaches the output.
+        unrepaired = final_crmask & (clean_image >= sentinel)
+        if unrepaired.any():
+            fill_from_unflagged_neighbors(clean_image, unrepaired, final_crmask)
+        del unrepaired
         if bad_mask is not None:
             clean_image[bad_mask] = bad_values
         if rss_debug:

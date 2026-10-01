@@ -67,6 +67,8 @@ docs = [
 [dependency-groups]
 dev = [
   "pytest>=8.3.4",
+  # reads the HST demo frame for the IRAF regression test
+  "astropy>=5.3",
   "pytest-cov>=6.0.0",
   "ruff>=0.14.7",
 ]
