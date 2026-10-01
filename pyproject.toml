@@ -51,6 +51,10 @@ dependencies = [
 notebooks = [
   "matplotlib>=3.10.7",
   "cmcrameri>=1.9",
+  "astropy>=5.3",
+  # the codes dfcosmic is compared with in HST.ipynb and Comparison.ipynb
+  "astroscrappy",
+  "lacosmic",
 ]
 docs = [
   "sphinx>=5.0.0",
@@ -59,6 +63,7 @@ docs = [
   "ipykernel>=6.0.0",
   "sphinx-copybutton==0.5.2",
   "sphinx-nefertiti==0.8.10",
+  "myst-parser>=2.0.0",
   # nbsphinx may execute the demo notebooks
   "matplotlib>=3.10.7",
   "cmcrameri>=1.9",
