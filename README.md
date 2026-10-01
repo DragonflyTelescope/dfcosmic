@@ -84,6 +84,12 @@ clean_image, crmask = lacosmic(
 
 If you are unsure of either the gain or the readnoise you can leave them blank or set to 0. If so, then the gain will be estimated at each iteration.
 
+### Input images
+
+- `image` must be a 2D numpy array or torch tensor. Numpy arrays of any dtype, byte order and memory layout are accepted, so data straight from `astropy.io.fits.getdata` works without conversion. The input is never modified.
+- All computations are done in single precision: the cleaned image is returned as `float32`, even for `float64` input.
+- Non-finite pixels (NaN and ±inf, e.g. flagged bad pixels) are ignored: they are excluded from the gain estimate, are never flagged as cosmic rays, and are returned unchanged in the cleaned image.
+
 ## Memory-Constrained CPU Runners
 
 On small CPU runners, PyTorch CPU convolutions can request a large temporary workspace. `dfcosmic` supports two environment variables to force safer behavior:
