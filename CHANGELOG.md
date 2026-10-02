@@ -2,7 +2,7 @@
 
 All notable changes to dfcosmic are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## Unreleased
+## 0.2.1 - 2026-10-02
 
 ### Changed
 
@@ -26,7 +26,7 @@ All notable changes to dfcosmic are listed here. The format follows [Keep a Chan
 
 ### Documentation
 
-- The README has badges for the PyPI version and the supported Python versions.
+- The README has badges for the PyPI version, the supported Python versions and the test coverage.
 - The paper no longer says that the GPU implementation allows batch processing, which `lacosmic` does not support.
 
 ## 0.2.0 - 2026-10-02

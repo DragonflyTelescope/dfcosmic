@@ -4,6 +4,7 @@
 [![Documentation Status](https://readthedocs.org/projects/dfcosmic/badge/?version=latest)](https://dfcosmic.readthedocs.io/en/latest/?badge=latest)
 [![PyPI version](https://img.shields.io/pypi/v/dfcosmic)](https://pypi.org/project/dfcosmic/)
 [![Python versions](https://img.shields.io/pypi/pyversions/dfcosmic)](https://pypi.org/project/dfcosmic/)
+[![codecov](https://codecov.io/gh/DragonflyTelescope/dfcosmic/graph/badge.svg)](https://codecov.io/gh/DragonflyTelescope/dfcosmic)
 [![DOI](https://zenodo.org/badge/1109261439.svg)](https://doi.org/10.5281/zenodo.18451350)
 
 

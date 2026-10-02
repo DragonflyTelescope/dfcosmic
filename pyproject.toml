@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dfcosmic"
-version = "0.2.0"
+version = "0.2.1"
 dynamic = []
 authors = [
   { name = "Carter Rhea", email = "carter.rhea@dragonfly1000.com" },
