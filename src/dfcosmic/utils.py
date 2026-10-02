@@ -11,6 +11,12 @@ _DISABLE_CPP = os.environ.get("DFCOSMIC_DISABLE_CPP", "").lower() in {
 }
 _DEFAULT_CONVOLVE_DIRECT_MAX_NUMEL = 262_144
 _DEFAULT_MEMORY_BUDGET_MARGIN = 0.8
+# A median filter whose result is only read at a few pixels is evaluated at those
+# pixels instead of on the whole image, as long as they make up at most this fraction
+# of the image. Evaluating at pixels is several times faster up to this fraction on
+# one and on many threads; far above it, filtering the whole image wins.
+_DEFAULT_SPARSE_MEDIAN_MAX_FRACTION = 0.1
+_SPARSE_MEDIAN_CHUNK_VALUES = 2_000_000
 
 
 def _rss_debug_enabled() -> bool:
@@ -47,6 +53,22 @@ def _convolve_direct_max_numel() -> int:
     except ValueError:
         return _DEFAULT_CONVOLVE_DIRECT_MAX_NUMEL
     return max(0, value)
+
+
+def _sparse_median_max_fraction() -> float:
+    raw = os.environ.get("DFCOSMIC_SPARSE_MEDIAN_MAX_FRACTION")
+    if raw is None:
+        return _DEFAULT_SPARSE_MEDIAN_MAX_FRACTION
+    try:
+        value = float(raw)
+    except ValueError:
+        return _DEFAULT_SPARSE_MEDIAN_MAX_FRACTION
+    return min(1.0, max(0.0, value))
+
+
+def use_sparse_median(n_pixels: int, image: torch.Tensor) -> bool:
+    """Whether a median that is needed at ``n_pixels`` pixels only is evaluated there."""
+    return n_pixels <= _sparse_median_max_fraction() * image.numel()
 
 
 def _memory_budget_mb() -> float | None:
@@ -354,6 +376,85 @@ def median_filter_torch(
     return filtered
 
 
+def _window_indices(
+    ys: torch.Tensor, xs: torch.Tensor, kernel_size: int, shape: tuple[int, int]
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """
+    Row and column indices of the ``kernel_size`` window around each pixel, with shapes
+    (n, k, 1) and (n, 1, k). Indices beyond the image are moved to its edge, which is
+    the same as the replicate padding of the median filter.
+    """
+    radius = kernel_size // 2
+    offsets = torch.arange(-radius, radius + 1, device=ys.device)
+    yy = (ys[:, None, None] + offsets[None, :, None]).clamp(0, shape[0] - 1)
+    xx = (xs[:, None, None] + offsets[None, None, :]).clamp(0, shape[1] - 1)
+    return yy, xx
+
+
+def median_filter_at(
+    image: torch.Tensor,
+    ys: torch.Tensor,
+    xs: torch.Tensor,
+    kernel_size: int = 3,
+    replace: torch.Tensor | None = None,
+    value: float | None = None,
+) -> torch.Tensor:
+    """
+    Median filter evaluated only at the pixels ``(ys, xs)``.
+
+    Returns the same values as ``median_filter_torch(image, kernel_size)[ys, xs]``, at
+    a cost proportional to the number of pixels instead of the size of the image. If
+    ``replace`` (a boolean image) is given, the pixels where it is True enter the
+    medians as ``value``.
+    """
+    window_size = kernel_size * kernel_size
+    result = torch.empty(ys.numel(), dtype=image.dtype, device=image.device)
+    step = max(1, _SPARSE_MEDIAN_CHUNK_VALUES // window_size)
+    for start in range(0, ys.numel(), step):
+        stop = start + step
+        yy, xx = _window_indices(
+            ys[start:stop], xs[start:stop], kernel_size, image.shape
+        )
+        window = image[yy, xx].reshape(-1, window_size)
+        if replace is not None:
+            window.masked_fill_(replace[yy, xx].reshape(-1, window_size), value)
+        result[start:stop] = window.median(dim=1).values
+    return result
+
+
+def median_of_median_at(
+    image: torch.Tensor,
+    ys: torch.Tensor,
+    xs: torch.Tensor,
+    inner_size: int = 3,
+    outer_size: int = 7,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """
+    Two nested median filters evaluated only at the pixels ``(ys, xs)``.
+
+    Returns the values at those pixels of ``inner = median_filter(image, inner_size)``
+    and of ``median_filter(inner, outer_size)``. The inner filter is only evaluated in
+    the ``outer_size`` windows of the pixels, never on the whole image.
+    """
+    window_size = outer_size * outer_size
+    inner = torch.empty(ys.numel(), dtype=image.dtype, device=image.device)
+    outer = torch.empty_like(inner)
+    step = max(1, _SPARSE_MEDIAN_CHUNK_VALUES // (window_size * inner_size**2))
+    for start in range(0, ys.numel(), step):
+        stop = start + step
+        yy, xx = _window_indices(
+            ys[start:stop], xs[start:stop], outer_size, image.shape
+        )
+        yy, xx = torch.broadcast_tensors(yy, xx)
+        window = median_filter_at(
+            image, yy.reshape(-1), xx.reshape(-1), kernel_size=inner_size
+        ).reshape(-1, window_size)
+        # The middle of the window is the pixel itself
+        inner[start:stop] = window[:, window_size // 2]
+        outer[start:stop] = window.median(dim=1).values
+    return inner, outer
+
+
 def fill_from_unflagged_neighbors(
     image: torch.Tensor,
     fill_mask: torch.Tensor,
@@ -377,9 +478,7 @@ def fill_from_unflagged_neighbors(
 
     radius = kernel_size // 2
     while todo.numel() > 0 and radius < max(h, w):
-        offsets = torch.arange(-radius, radius + 1, device=image.device)
-        yy = (ys[todo, None, None] + offsets[None, :, None]).clamp(0, h - 1)
-        xx = (xs[todo, None, None] + offsets[None, None, :]).clamp(0, w - 1)
+        yy, xx = _window_indices(ys[todo], xs[todo], 2 * radius + 1, image.shape)
         window = image[yy, xx].reshape(todo.numel(), -1)
         flagged = flagged_mask[yy, xx].reshape(todo.numel(), -1)
         del yy, xx

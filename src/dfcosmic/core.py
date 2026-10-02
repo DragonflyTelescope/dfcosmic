@@ -12,9 +12,12 @@ from dfcosmic.utils import (
     cpp_median_available,
     fill_from_unflagged_neighbors,
     laplacian_pool_chunked,
+    median_filter_at,
     median_filter_cpp_torch,
+    median_of_median_at,
     median_filter_torch,
     sigma_clip_pytorch,
+    use_sparse_median,
     warn_cpp_median_unavailable,
 )
 
@@ -162,6 +165,14 @@ def lacosmic(
     contains at least one unflagged pixel). The returned image therefore never
     contains placeholder values: every repaired pixel is the value of an unflagged
     pixel of the input image.
+
+    Of the five median filters of an iteration, three are only read at a few pixels:
+    the two that build the fine structure image are read at the candidate pixels, and
+    the one used for the repair at the flagged pixels. They are evaluated at those
+    pixels only, which gives exactly the same result as filtering the whole image and
+    is much faster. If the pixels make up more than 10% of the image, the whole image
+    is filtered instead. The fraction can be changed with the environment variable
+    ``DFCOSMIC_SPARSE_MEDIAN_MAX_FRACTION``; 0 always filters the whole image.
 
     Performance tips:
 
@@ -407,7 +418,7 @@ def lacosmic(
                         print("")
 
                     # Step 4: Initial CR candidates
-                    firstsel = (sigmap >= sigclip).to(sigmap.dtype)
+                    candidates = sigmap >= sigclip
 
                     if verbose:
                         print("Removing suspected compact bright objects (e.g. stars)")
@@ -416,19 +427,45 @@ def lacosmic(
                         )
                         print("")
 
-                    # Step 5: Reject objects (fine structure)
-                    med3 = median_filter_fn(clean_image, kernel_size=3)
-                    med7 = median_filter_fn(med3, kernel_size=7)
-                    med3 = med3 - med7
-                    del med7
-                    med3 = med3 / noise
-                    med3.clamp_(min=0.01)
+                    # Step 5: Reject objects (fine structure). The fine structure
+                    # image is only read at the candidates.
+                    n_candidates = int(candidates.sum())
+                    if n_candidates == 0:
+                        firstsel = torch.zeros_like(sigmap)
+                    elif use_sparse_median(n_candidates, clean_image):
+                        # Few candidates: evaluate the 7x7 median only at them. The
+                        # values, and therefore the result, are the same as when
+                        # filtering the full image.
+                        ys, xs = torch.nonzero(candidates, as_tuple=True)
+                        if use_sparse_median(49 * n_candidates, clean_image):
+                            # So few that the 3x3 median, which is needed in their
+                            # 7x7 windows, is not worth computing everywhere either
+                            med3, med7 = median_of_median_at(clean_image, ys, xs, 3, 7)
+                        else:
+                            full_med3 = median_filter_fn(clean_image, kernel_size=3)
+                            med3 = full_med3[ys, xs]
+                            med7 = median_filter_at(full_med3, ys, xs, kernel_size=7)
+                            del full_med3
+                        fine = ((med3 - med7) / noise[ys, xs]).clamp_(min=0.01)
+                        keep = sigmap[ys, xs] / fine >= objlim
+                        firstsel = torch.zeros_like(sigmap)
+                        firstsel[ys[keep], xs[keep]] = 1.0
+                        del ys, xs, med3, med7, fine, keep
+                    else:
+                        firstsel = candidates.to(sigmap.dtype)
+                        med3 = median_filter_fn(clean_image, kernel_size=3)
+                        med7 = median_filter_fn(med3, kernel_size=7)
+                        med3 = med3 - med7
+                        del med7
+                        med3 = med3 / noise
+                        med3.clamp_(min=0.01)
 
-                    starreject = (firstsel * sigmap) / med3
-                    del med3
-                    starreject = (starreject >= objlim).to(sigmap.dtype)
-                    firstsel = firstsel * starreject
-                    del starreject
+                        starreject = (firstsel * sigmap) / med3
+                        del med3
+                        starreject = (starreject >= objlim).to(sigmap.dtype)
+                        firstsel = firstsel * starreject
+                        del starreject
+                    del candidates
                     if rss_debug:
                         _log_rss(f"iter {iteration + 1} after star rejection")
 
@@ -493,11 +530,26 @@ def lacosmic(
                     # unless more than half of the window is flagged. In that case it
                     # is the sentinel itself: the pixel stays marked as unrepaired for
                     # the next iteration and is filled in after the last one.
-                    tmp = clean_image.clone()
-                    tmp[final_crmask] = sentinel
-                    tmp = median_filter_fn(tmp, kernel_size=5)
-                    # Only use the median at CR locations
-                    clean_image[final_crmask] = tmp[final_crmask]
+                    if use_sparse_median(int(final_crmask.sum()), clean_image):
+                        # The median is only used at the flagged pixels, so it is
+                        # only evaluated there.
+                        ys, xs = torch.nonzero(final_crmask, as_tuple=True)
+                        clean_image[ys, xs] = median_filter_at(
+                            clean_image,
+                            ys,
+                            xs,
+                            kernel_size=5,
+                            replace=final_crmask,
+                            value=sentinel,
+                        )
+                        del ys, xs
+                    else:
+                        tmp = clean_image.clone()
+                        tmp[final_crmask] = sentinel
+                        tmp = median_filter_fn(tmp, kernel_size=5)
+                        # Only use the median at CR locations
+                        clean_image[final_crmask] = tmp[final_crmask]
+                        del tmp
                     if rss_debug:
                         _log_rss(f"iter {iteration + 1} after repair")
                         print(
@@ -505,7 +557,7 @@ def lacosmic(
                             f"{perf_counter() - iter_start:.2f}s"
                         )
 
-                    del tmp, finalsel, noise
+                    del finalsel, noise
 
         # Repair the pixels whose 5x5 window was mostly flagged, so that the
         # sentinel never reaches the output.
