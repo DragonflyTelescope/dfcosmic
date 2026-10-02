@@ -87,9 +87,21 @@ class TestIrafRegression:
         data, iraf_mask = hst
         _, mask = lacosmic(data, niter=4, use_cpp=use_cpp, **HST_PARAMS)
         iou = (mask & iraf_mask).sum() / (mask | iraf_mask).sum()
-        assert iou > 0.996
-        assert (mask & ~iraf_mask).sum() < 50
-        assert (~mask & iraf_mask).sum() < 50
+        # 18,920 pixels flagged against 18,921 for IRAF: 1 extra and 2 missed
+        assert iou > 0.9995
+        assert (mask & ~iraf_mask).sum() <= 3
+        assert (~mask & iraf_mask).sum() <= 5
+
+    def test_no_spurious_detections_at_the_image_border(self, hst):
+        """
+        With the image extended by zeros for the Laplacian, 36 pixels within 3 pixels
+        of the border were flagged that IRAF does not flag.
+        """
+        data, iraf_mask = hst
+        _, mask = lacosmic(data, niter=4, **HST_PARAMS)
+        border = np.ones(mask.shape, dtype=bool)
+        border[3:-3, 3:-3] = False
+        assert (mask & ~iraf_mask & border).sum() == 0
 
 
 class TestFillFromUnflaggedNeighbors:

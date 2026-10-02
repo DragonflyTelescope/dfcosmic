@@ -8,6 +8,7 @@ import torch
 from threadpoolctl import threadpool_limits
 
 from dfcosmic.utils import (
+    _log_rss,
     convolve,
     cpp_median_available,
     fill_from_unflagged_neighbors,
@@ -21,29 +22,7 @@ from dfcosmic.utils import (
     warn_cpp_median_unavailable,
 )
 
-_KERNEL_CACHE: dict[
-    tuple[str, torch.dtype],
-    tuple[tuple[int, int], torch.Tensor, torch.Tensor, torch.Tensor],
-] = {}
-
-
-def _current_rss_mb() -> float | None:
-    try:
-        with open("/proc/self/status", encoding="utf-8") as fh:
-            for line in fh:
-                if line.startswith("VmRSS:"):
-                    return float(line.split()[1]) / 1024.0
-    except Exception:
-        return None
-    return None
-
-
-def _log_rss(label: str) -> None:
-    rss_mb = _current_rss_mb()
-    if rss_mb is None:
-        print(f"[rss] {label}: unavailable")
-    else:
-        print(f"[rss] {label}: {rss_mb:.1f} MiB")
+_KERNEL_CACHE: dict[tuple[str, torch.dtype], tuple[torch.Tensor, torch.Tensor]] = {}
 
 
 def _get_kernels(device: torch.device, dtype: torch.dtype):
@@ -52,13 +31,11 @@ def _get_kernels(device: torch.device, dtype: torch.dtype):
     if cached is not None:
         return cached
 
-    block_size_tuple = (2, 2)
-    block_size_tensor = torch.tensor(block_size_tuple, device=device)
+    block_size_tensor = torch.tensor((2, 2), device=device)
     laplacian_kernel = torch.tensor(
         [[0, -1, 0], [-1, 4, -1], [0, -1, 0]], dtype=dtype, device=device
     )
-    strel = torch.ones((3, 3), device=device, dtype=dtype)
-    cached = (block_size_tuple, block_size_tensor, laplacian_kernel, strel)
+    cached = (block_size_tensor, laplacian_kernel)
     _KERNEL_CACHE[key] = cached
     return cached
 
@@ -120,7 +97,8 @@ def lacosmic(
     verbose : bool
         Print iteration progress. Default is False.
     rss_debug : bool
-        Print RSS memory at key steps. Default is False.
+        Print the memory in use (resident set size) at key steps. This is only
+        available on Linux. Default is False.
 
     Returns
     -------
@@ -255,9 +233,7 @@ def lacosmic(
             if rss_debug:
                 _log_rss("after input cast/to(device)")
 
-            block_size_tuple, block_size_tensor, laplacian_kernel, strel = _get_kernels(
-                device, image_t.dtype
-            )
+            block_size_tensor, laplacian_kernel = _get_kernels(device, image_t.dtype)
             gkernel = torch.ones((3, 3), dtype=image_t.dtype, device=device)
 
             clean_image = image_t.clone()
@@ -417,8 +393,9 @@ def lacosmic(
                         print(f"  sigma limit = {sigclip:.1f}")
                         print("")
 
-                    # Step 4: Initial CR candidates
-                    candidates = sigmap >= sigclip
+                    # Step 4: Initial CR candidates. As in the IRAF script, a pixel
+                    # exactly at a limit is not selected, here and in step 5.
+                    candidates = sigmap > sigclip
 
                     if verbose:
                         print("Removing suspected compact bright objects (e.g. stars)")
@@ -447,7 +424,7 @@ def lacosmic(
                             med7 = median_filter_at(full_med3, ys, xs, kernel_size=7)
                             del full_med3
                         fine = ((med3 - med7) / noise[ys, xs]).clamp_(min=0.01)
-                        keep = sigmap[ys, xs] / fine >= objlim
+                        keep = sigmap[ys, xs] / fine > objlim
                         firstsel = torch.zeros_like(sigmap)
                         firstsel[ys[keep], xs[keep]] = 1.0
                         del ys, xs, med3, med7, fine, keep
@@ -462,7 +439,7 @@ def lacosmic(
 
                         starreject = (firstsel * sigmap) / med3
                         del med3
-                        starreject = (starreject >= objlim).to(sigmap.dtype)
+                        starreject = (starreject > objlim).to(sigmap.dtype)
                         firstsel = firstsel * starreject
                         del starreject
                     del candidates

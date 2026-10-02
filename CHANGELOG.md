@@ -2,6 +2,33 @@
 
 All notable changes to dfcosmic are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Changed
+
+- At the edges of the image, the Laplacian convolution now extends the image by its nearest pixel, as the IRAF `convolve` task does, instead of by zeros. This removes spurious detections within a few pixels of the border. On the *HST* reference frame the agreement with the IRAF mask goes from an intersection over union of 0.9964 (37 pixels flagged that IRAF does not flag, 31 missed) to 0.9998 (1 and 2).
+- Candidate pixels must now be strictly above `sigclip` and `objlim` to be kept, as in the IRAF script; a pixel exactly at a limit used to be kept. This has no measurable effect on real data.
+
+### Deprecated
+
+- Python 3.10 reached its end of life in October 2026. The 0.2 releases still support it; the next minor release will require Python 3.11.
+
+### Fixed
+
+- `block_replicate_torch` raised `UnboundLocalError` for input that is not 2D when `conserve_sum=True`, and `TypeError` when the block size was given as an `int` or a list, as its signature allows.
+
+### Tests and internals
+
+- The tests now seed the random number generators, so every run uses the same images.
+- New tests check that the chunked convolution paths give the same result as the unchunked ones.
+- Removed unused kernels from the kernel cache and the second copy of the memory-logging helpers.
+- Every public function in `dfcosmic.utils` now has a docstring.
+
+### Documentation
+
+- The README has badges for the PyPI version and the supported Python versions.
+- The paper no longer says that the GPU implementation allows batch processing, which `lacosmic` does not support.
+
 ## 0.2.0 - 2026-10-02
 
 ### Performance

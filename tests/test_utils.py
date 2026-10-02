@@ -1,12 +1,16 @@
+import numpy as np
 import pytest
 import torch
 
 import dfcosmic.utils as utils
+from dfcosmic import lacosmic
 from dfcosmic.utils import (
     _budgeted_chunk_rows,
     _process_block_inputs,
     block_replicate_torch,
     convolve,
+    convolve_chunked,
+    laplacian_pool_chunked,
     median_filter_torch,
     sigma_clip_pytorch,
 )
@@ -129,6 +133,28 @@ class TestBlockReplicateTorch:
         result = block_replicate_torch(data, block_size, conserve_sum=False)
         assert result.shape == (6,)
 
+    @pytest.mark.parametrize("block_size", [2, [2, 2], (2, 2), torch.tensor([2, 2])])
+    def test_block_size_as_int_list_or_tensor(self, block_size):
+        """The block size can be given as the type hint says."""
+        data = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
+        result = block_replicate_torch(data, block_size)
+        expected = data.repeat_interleave(2, dim=0).repeat_interleave(2, dim=1)
+        assert torch.equal(result, expected)
+
+    @pytest.mark.parametrize("shape", [(5,), (2, 3, 4)])
+    def test_conserve_sum_for_non_2d_input(self, shape):
+        """conserve_sum used to raise UnboundLocalError for input that is not 2D."""
+        data = torch.rand(shape)
+        result = block_replicate_torch(data, 2, conserve_sum=True)
+        assert result.shape == tuple(2 * n for n in shape)
+        assert torch.allclose(result.sum(), data.sum())
+
+    def test_does_not_modify_input(self):
+        data = torch.rand(2, 3, 4)
+        original = data.clone()
+        block_replicate_torch(data, 2, conserve_sum=True)
+        assert torch.equal(data, original)
+
 
 class TestConvolve:
     """Tests for convolve function."""
@@ -205,6 +231,90 @@ class TestConvolve:
         result = convolve(image, kernel)
 
         assert result.shape == image.shape
+
+
+class TestChunkedConvolution:
+    """The chunked paths must give the same result as the unchunked computation."""
+
+    @pytest.mark.parametrize("chunk_size", [1, 7, 64, 1000])
+    @pytest.mark.parametrize("kernel_size", [3, 5])
+    def test_convolve_chunked_matches_direct(self, chunk_size, kernel_size):
+        image = torch.randn((150, 90))
+        kernel = torch.randn((kernel_size, kernel_size))
+        pad = kernel_size // 2
+        expected = torch.nn.functional.conv2d(
+            image[None, None], kernel[None, None], padding=pad
+        )[0, 0]
+        result = convolve_chunked(image, kernel, chunk_size=chunk_size)
+        assert torch.allclose(result, expected, rtol=1e-5, atol=1e-5)
+
+    def test_convolve_chunked_exact_for_the_kernels_used(self):
+        """The two kernels of the algorithm, on values that sum exactly."""
+        image = torch.randint(0, 50, (150, 90)).float()
+        laplacian = torch.tensor(
+            [[0.0, -1.0, 0.0], [-1.0, 4.0, -1.0], [0.0, -1.0, 0.0]]
+        )
+        for kernel in (laplacian, torch.ones((3, 3))):
+            expected = torch.nn.functional.conv2d(
+                image[None, None], kernel[None, None], padding=1
+            )[0, 0]
+            assert torch.equal(convolve_chunked(image, kernel, chunk_size=16), expected)
+
+    @pytest.mark.parametrize("chunk_size", [1, 7, 64, 1000])
+    def test_laplacian_pool_chunked_matches_unchunked(self, chunk_size):
+        image = torch.randint(0, 50, (150, 90)).float()
+        laplacian = torch.tensor(
+            [[0.0, -1.0, 0.0], [-1.0, 4.0, -1.0], [0.0, -1.0, 0.0]]
+        )
+        replicated = image.repeat_interleave(2, dim=0).repeat_interleave(2, dim=1)
+        # The image is extended by its nearest pixel, as in IRAF
+        padded = torch.nn.functional.pad(
+            replicated[None, None], (1, 1, 1, 1), mode="replicate"
+        )
+        convolved = torch.nn.functional.conv2d(padded, laplacian[None, None])
+        expected = torch.nn.functional.avg_pool2d(convolved.clamp(min=0), 2)[0, 0]
+        result = laplacian_pool_chunked(
+            image, torch.tensor([2, 2]), laplacian, chunk_size=chunk_size
+        )
+        assert torch.equal(result, expected)
+
+    @pytest.mark.parametrize("chunk_size", [1, 7, 1000])
+    def test_laplacian_sees_no_edge_at_the_image_border(self, chunk_size):
+        """
+        The image is extended by its nearest pixel, so a flat image has no Laplacian
+        signal anywhere. Extending it by zeros would create one along the border.
+        """
+        image = torch.full((40, 30), 100.0)
+        laplacian = torch.tensor(
+            [[0.0, -1.0, 0.0], [-1.0, 4.0, -1.0], [0.0, -1.0, 0.0]]
+        )
+        result = laplacian_pool_chunked(
+            image, torch.tensor([2, 2]), laplacian, chunk_size=chunk_size
+        )
+        assert torch.equal(result, torch.zeros_like(image))
+
+    def test_lacosmic_same_result_chunked_and_direct(self, monkeypatch):
+        """lacosmic gives the same mask and image whichever path the convolutions take."""
+        rng = np.random.default_rng(42)
+        image = rng.poisson(200, (300, 300)).astype(np.float32)
+        ys, xs = rng.integers(0, 300, 150), rng.integers(0, 300, 150)
+        image[ys, xs] += rng.uniform(500, 2000, 150).astype(np.float32)
+        kwargs = dict(sigclip=4.5, sigfrac=0.3, objlim=4, gain=1, readnoise=5, niter=2)
+
+        monkeypatch.setenv("DFCOSMIC_CONVOLVE_DIRECT_MAX_NUMEL", "100000000")
+        clean_direct, mask_direct = lacosmic(image, **kwargs)
+        assert mask_direct.sum() > 100
+
+        monkeypatch.setenv("DFCOSMIC_CONVOLVE_DIRECT_MAX_NUMEL", "0")
+        clean_chunked, mask_chunked = lacosmic(image, **kwargs)
+        np.testing.assert_array_equal(mask_chunked, mask_direct)
+        np.testing.assert_array_equal(clean_chunked, clean_direct)
+
+        # ... and with a small memory budget, which makes every chunk small
+        monkeypatch.setenv("DFCOSMIC_MAX_MEMORY_MB", "0.5")
+        clean_small, mask_small = lacosmic(image, **kwargs)
+        np.testing.assert_array_equal(mask_small, mask_direct)
+        np.testing.assert_array_equal(clean_small, clean_direct)
 
 
 class TestMemoryBudgetHelpers:

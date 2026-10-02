@@ -148,9 +148,9 @@ _CPP_FALLBACK_WARNED = False
 
 
 def _process_block_inputs(
-    data: torch.Tensor, block_size: torch.Tensor
+    data: torch.Tensor, block_size: int | list[int] | torch.Tensor
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    block_size = torch.atleast_1d(block_size)
+    block_size = torch.atleast_1d(torch.as_tensor(block_size))
 
     if torch.any(block_size <= 0):
         raise ValueError("block_size elements must be strictly positive")
@@ -172,8 +172,17 @@ def _process_block_inputs(
 
 
 def block_replicate_torch(
-    data: torch.Tensor, block_size: int | list[int], conserve_sum: bool = False
+    data: torch.Tensor,
+    block_size: int | list[int] | torch.Tensor,
+    conserve_sum: bool = False,
 ) -> torch.Tensor:
+    """
+    Upsample an array by repeating every element ``block_size`` times along each axis.
+
+    ``block_size`` is a single number, used for every axis, or one number per axis.
+    If ``conserve_sum`` is True, the result is divided by the number of copies of each
+    element, so that its sum is the sum of the input.
+    """
     data, block_size = _process_block_inputs(data, block_size)
 
     if data.ndim == 2:
@@ -195,13 +204,14 @@ def block_replicate_torch(
             del chunk_rep
 
     else:
+        output = data
         for i in range(data.ndim):
-            data = data.repeat_interleave(int(block_size[i]), dim=i)
+            output = output.repeat_interleave(int(block_size[i]), dim=i)
 
     if conserve_sum:
         output = output / torch.prod(block_size).float()
 
-    return output if data.ndim == 2 else data
+    return output
 
 
 def laplacian_pool_chunked(
@@ -213,9 +223,17 @@ def laplacian_pool_chunked(
     """
     Exact chunked implementation of the LA Cosmic subsampled Laplacian step:
     2x block replication -> Laplacian convolution -> clamp(min=0) -> 2x2 average pool.
+
+    At the edges, the image is extended by its nearest pixel for the convolution, as
+    the IRAF ``convolve`` task does by default (``boundary="nearest"``).
     """
     _log_rss("utils.laplacian_pool_chunked start")
     h, w = image.shape
+    block_h, block_w = int(block_size[0]), int(block_size[1])
+    # Pixels by which the image is extended, enough to cover half the kernel after
+    # the replication
+    edge_h = -(-(laplacian_kernel.shape[0] // 2) // block_h)
+    edge_w = -(-(laplacian_kernel.shape[1] // 2) // block_w)
     output = torch.empty_like(image)
     # Approximate workspace per core row: input slice + replicated slice +
     # convolution output + pooled output. Keep this conservative for small runners.
@@ -233,13 +251,26 @@ def laplacian_pool_chunked(
         core_offset = i - src_y0
         core_rows = i_end - i
 
-        image_chunk = image[src_y0:src_y1, :]
+        # Extend the image by its nearest pixel instead of by zeros, which would look
+        # like an edge to the Laplacian. This is done before the replication, where
+        # the copy is small; the extension is cut off again after the convolution.
+        # Inside the image it only changes the rows next to the chunk, which are
+        # dropped below.
+        image_chunk = F.pad(
+            image[src_y0:src_y1, :].unsqueeze(0).unsqueeze(0),
+            (edge_w, edge_w, edge_h, edge_h),
+            mode="replicate",
+        )[0, 0]
         replicated = block_replicate_torch(image_chunk, block_size, conserve_sum=False)
+        del image_chunk
         conv = convolve(replicated, laplacian_kernel)
+        conv = conv[
+            edge_h * block_h : conv.shape[0] - edge_h * block_h,
+            edge_w * block_w : conv.shape[1] - edge_w * block_w,
+        ]
         conv.clamp_(min=0)
         pooled = F.avg_pool2d(
-            conv.unsqueeze(0).unsqueeze(0),
-            kernel_size=(int(block_size[0]), int(block_size[1])),
+            conv.unsqueeze(0).unsqueeze(0), kernel_size=(block_h, block_w)
         )[0, 0]
 
         output[i:i_end, :] = pooled[core_offset : core_offset + core_rows, :]
@@ -303,6 +334,12 @@ def convolve_chunked(
 def convolve(
     image: torch.Tensor, kernel: torch.Tensor, chunk_size: int = 512
 ) -> torch.Tensor:
+    """
+    Convolve a 2D image with a 2D kernel, with zeros beyond the edges of the image.
+
+    Large images on the CPU are convolved in chunks of ``chunk_size`` rows to limit
+    memory use (see ``convolve_chunked``); the result is the same.
+    """
     _log_rss("utils.convolve start")
     # oneDNN/MKL-backed CPU conv2d can request a large temporary workspace on
     # memory-constrained runners, so keep the direct path limited and tunable.
@@ -533,6 +570,14 @@ def median_filter_cpp_torch(
 def sigma_clip_pytorch(
     data: torch.Tensor, sigma: tuple[float, float] | float = 3.0, maxiters: int = 10
 ) -> tuple[torch.Tensor, dict]:
+    """
+    Iteratively remove the values further than ``sigma`` standard deviations from the
+    mean, until none is removed or ``maxiters`` iterations have been made.
+
+    ``sigma`` is one number, or a (lower, upper) pair. Returns the remaining values as
+    a 1D tensor, and a dictionary with their ``median``, ``mean`` and ``std``, the
+    number of iterations made (``niter``) and the number of values left (``npix``).
+    """
     if isinstance(sigma, (int, float)):
         sigma_low, sigma_high = sigma, sigma
     else:
@@ -567,6 +612,7 @@ def sigma_clip_pytorch(
 
 
 def cpp_median_available() -> bool:
+    """Whether the optional C++ median filter has been built and can be used."""
     return _CPP_MEDIAN_AVAILABLE
 
 
