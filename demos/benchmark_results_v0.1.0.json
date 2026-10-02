@@ -1,0 +1,3994 @@
+{
+ "schema": 1,
+ "experiments": {
+  "niter1": {
+   "settings": {
+    "image": "synthetic",
+    "shape": [
+     4000,
+     6500
+    ],
+    "dtype": "float32",
+    "seed": 200,
+    "params": {
+     "sigclip": 6.0,
+     "sigfrac": 1.0,
+     "objlim": 2.0,
+     "gain": 1.0,
+     "readnoise": 10.0
+    },
+    "niter": 1,
+    "threads": [
+     1,
+     2,
+     4,
+     8,
+     16
+    ],
+    "rounds": 3,
+    "repeats": 3,
+    "warmup_calls": 1,
+    "shuffle_seed": 0
+   },
+   "started": "2026-10-01T18:36:13",
+   "system": {
+    "cpu": "AMD Ryzen 9 9950X 16-Core Processor",
+    "physical_cores": 16,
+    "logical_cpus": 32,
+    "ram_gb": 60.4,
+    "cpu_governor": "performance",
+    "cpu_boost": "1",
+    "os": "Fedora Linux 44 (Workstation Edition)",
+    "kernel": "Linux 7.2.7-200.fc44.x86_64",
+    "machine": "x86_64",
+    "python": "3.12.13",
+    "nvidia_driver": "NVRM version: NVIDIA UNIX Open Kernel Module for x86_64  615.71.09  Release Build  (dvs-builder@U22-I3-F05-2-4)  Fri Sep  4 22:33:33 UTC 2026",
+    "dfcosmic_commit": "1b4d912",
+    "dfcosmic_src_modified": false
+   },
+   "gpu": {
+    "name": "NVIDIA GeForce RTX 5060 Ti",
+    "memory_gb": 15.6,
+    "cuda": "13.0"
+   },
+   "versions": {
+    "dfcosmic": "0.1.0",
+    "torch": "2.14.1+cu130",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "astropy": "8.0.1",
+    "astroscrappy": "1.3.0",
+    "lacosmic": "1.4.0",
+    "threadpoolctl": "3.7.0"
+   },
+   "configs": {
+    "dfcosmic_torch": {
+     "package": "dfcosmic",
+     "label": "dfcosmic \u00b7 CPU, PyTorch only",
+     "threads": "all",
+     "note": "What `pip install dfcosmic` gives."
+    },
+    "dfcosmic_cpp": {
+     "package": "dfcosmic",
+     "label": "dfcosmic \u00b7 CPU, C++ median filter",
+     "threads": "all",
+     "note": "Needs the optional C++ extension, built from source."
+    },
+    "dfcosmic_gpu": {
+     "package": "dfcosmic",
+     "label": "dfcosmic \u00b7 GPU",
+     "threads": "ends",
+     "note": "Includes the transfer of the image to and from the GPU."
+    },
+    "astroscrappy_sepmed_false": {
+     "package": "astroscrappy",
+     "label": "astroscrappy \u00b7 true median (sepmed=False)",
+     "threads": "all",
+     "note": "Same median filter as the original algorithm."
+    },
+    "astroscrappy_sepmed_true": {
+     "package": "astroscrappy",
+     "label": "astroscrappy \u00b7 separable median (sepmed=True)",
+     "threads": "all",
+     "note": "astroscrappy's default. A different, faster algorithm."
+    },
+    "lacosmic": {
+     "package": "lacosmic",
+     "label": "lacosmic (single-threaded)",
+     "threads": "ends",
+     "note": "numpy and scipy only, so it does not use more than one thread."
+    }
+   },
+   "runs": [
+    {
+     "config": "astroscrappy_sepmed_false",
+     "threads": 4,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": false
+     },
+     "import_s": 0.0010562809911789373,
+     "first_call_s": 7.700961694994476,
+     "times_s": [
+      7.7121743869938655,
+      7.713406128008501,
+      7.721335615991848
+     ],
+     "cpu_s": [
+      28.178566625000002,
+      28.128411461,
+      28.24008659200001
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 4,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 4,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.8751583516672735,
+     "round": 0
+    },
+    {
+     "config": "dfcosmic_torch",
+     "threads": 1,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 1,
+      "use_cpp": false
+     },
+     "import_s": 0.4833435769978678,
+     "first_call_s": 46.53653365600621,
+     "times_s": [
+      46.30659017400467,
+      46.883525746001396,
+      47.09673131001182
+     ],
+     "cpu_s": [
+      46.158013332,
+      46.734817272000015,
+      46.95732032799998
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 1,
+       "library": "libgomp.so.1"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.7915779419618599,
+     "round": 0
+    },
+    {
+     "config": "astroscrappy_sepmed_true",
+     "threads": 1,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": true
+     },
+     "import_s": 0.0009656309994170442,
+     "first_call_s": 7.9848948220023885,
+     "times_s": [
+      8.102560140003334,
+      8.031705647998024,
+      7.96909064600186
+     ],
+     "cpu_s": [
+      8.079135373000002,
+      8.008703269999998,
+      7.946187003000002
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 1,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.515363616358286,
+     "round": 0
+    },
+    {
+     "config": "dfcosmic_cpp",
+     "threads": 4,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 4,
+      "use_cpp": true
+     },
+     "import_s": 0.47768724100023974,
+     "first_call_s": 9.763175322004827,
+     "times_s": [
+      9.817263787001139,
+      9.908358358996338,
+      9.845699944999069
+     ],
+     "cpu_s": [
+      38.279780214000006,
+      38.66362143799999,
+      38.46056771299999
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 4,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 4,
+       "library": "libgomp.so.1"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 1.1398104333302537,
+     "round": 0
+    },
+    {
+     "config": "dfcosmic_cpp",
+     "threads": 2,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 2,
+      "use_cpp": true
+     },
+     "import_s": 0.48886406199017074,
+     "first_call_s": 18.3493475389987,
+     "times_s": [
+      18.18014124900219,
+      18.284303523993003,
+      18.243099941988476
+     ],
+     "cpu_s": [
+      35.970083333000005,
+      36.162519841999995,
+      36.067128736000015
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 2,
+       "library": "libgomp.so.1"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 2,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.8398752216401839,
+     "round": 0
+    },
+    {
+     "config": "dfcosmic_gpu",
+     "threads": 16,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cuda"
+     },
+     "import_s": 0.5018273450114066,
+     "first_call_s": 1.3145667439966928,
+     "times_s": [
+      0.9552878919930663,
+      0.9546636320010293,
+      0.9545526209985837
+     ],
+     "cpu_s": [
+      0.952893177,
+      0.9525017700000005,
+      0.9522769609999999
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 16,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 16,
+       "library": "libgomp.so.1"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.5826452193519362,
+     "round": 0
+    },
+    {
+     "config": "lacosmic",
+     "threads": 1,
+     "kwargs": {
+      "contrast": 2.0,
+      "cr_threshold": 6.0,
+      "neighbor_threshold": 6.0,
+      "effective_gain": 1.0,
+      "readnoise": 10.0,
+      "maxiter": 1
+     },
+     "import_s": 0.1885950900032185,
+     "first_call_s": 24.743282837996958,
+     "times_s": [
+      24.908997045989963,
+      24.936522923002485,
+      24.859026894991985
+     ],
+     "cpu_s": [
+      24.84747088,
+      24.870678591000008,
+      24.797156977
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas-5f890258.so"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.4208293758511597,
+     "round": 0
+    },
+    {
+     "config": "astroscrappy_sepmed_true",
+     "threads": 16,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": true
+     },
+     "import_s": 0.0010239419934805483,
+     "first_call_s": 1.531699541999842,
+     "times_s": [
+      1.5365426570060663,
+      1.527581699003349,
+      1.5204344109952217
+     ],
+     "cpu_s": [
+      11.490911175,
+      11.386730385,
+      11.435904903
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 16,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 16,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.7496472701180309,
+     "round": 0
+    },
+    {
+     "config": "dfcosmic_gpu",
+     "threads": 1,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cuda"
+     },
+     "import_s": 0.49366343700967263,
+     "first_call_s": 1.3014994999975897,
+     "times_s": [
+      0.9555292129953159,
+      0.9553672119945986,
+      0.95450179099862
+     ],
+     "cpu_s": [
+      0.953310179,
+      0.9528233900000003,
+      0.9519952369999998
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 1,
+       "library": "libgomp.so.1"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.19271029364966075,
+     "round": 0
+    },
+    {
+     "config": "dfcosmic_torch",
+     "threads": 16,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 16,
+      "use_cpp": false
+     },
+     "import_s": 0.4713039740017848,
+     "first_call_s": 7.360090952002793,
+     "times_s": [
+      7.394315575991641,
+      7.28494596699602,
+      7.173485303996131
+     ],
+     "cpu_s": [
+      107.96867355399999,
+      105.94907568600001,
+      104.69554009499996
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 16,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 16,
+       "library": "libgomp.so.1"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 1.0843997446196556,
+     "round": 0
+    },
+    {
+     "config": "dfcosmic_torch",
+     "threads": 4,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 4,
+      "use_cpp": false
+     },
+     "import_s": 0.4826420360041084,
+     "first_call_s": 14.682780406990787,
+     "times_s": [
+      14.573818727003527,
+      14.508042061002925,
+      14.605834378991858
+     ],
+     "cpu_s": [
+      56.665860493000004,
+      56.34627512499999,
+      56.74977106200001
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 4,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 4,
+       "library": "libgomp.so.1"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.4416582307076445,
+     "round": 0
+    },
+    {
+     "config": "astroscrappy_sepmed_true",
+     "threads": 8,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": true
+     },
+     "import_s": 0.0010137310018762946,
+     "first_call_s": 1.917559731999063,
+     "times_s": [
+      1.931187565001892,
+      1.9882219319988508,
+      1.9843698080076138
+     ],
+     "cpu_s": [
+      9.438113253000001,
+      9.712974959,
+      9.719187891
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 8,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 8,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.5389640066289324,
+     "round": 0
+    },
+    {
+     "config": "dfcosmic_torch",
+     "threads": 8,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 8,
+      "use_cpp": false
+     },
+     "import_s": 0.48526285799744073,
+     "first_call_s": 9.57250200099952,
+     "times_s": [
+      9.562980681002955,
+      9.651531038995017,
+      9.543112161001773
+     ],
+     "cpu_s": [
+      72.05563679900001,
+      72.083596395,
+      71.283925654
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 8,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 8,
+       "library": "libgomp.so.1"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.6786140857795205,
+     "round": 0
+    },
+    {
+     "config": "astroscrappy_sepmed_true",
+     "threads": 4,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": true
+     },
+     "import_s": 0.00107249099528417,
+     "first_call_s": 2.8194085790019017,
+     "times_s": [
+      2.853686893999111,
+      2.8530612839967944,
+      2.834985904992209
+     ],
+     "cpu_s": [
+      8.743463741000001,
+      8.731063817999999,
+      8.662417238
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 4,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 4,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.46015996671256854,
+     "round": 0
+    },
+    {
+     "config": "dfcosmic_cpp",
+     "threads": 1,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 1,
+      "use_cpp": true
+     },
+     "import_s": 0.4760367989947554,
+     "first_call_s": 34.15188118300284,
+     "times_s": [
+      34.22658890900493,
+      34.01701057799801,
+      34.026352617001976
+     ],
+     "cpu_s": [
+      34.130783369,
+      33.927767659,
+      33.94326696000002
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 1,
+       "library": "libgomp.so.1"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.3470824071793705,
+     "round": 0
+    },
+    {
+     "config": "astroscrappy_sepmed_true",
+     "threads": 2,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": true
+     },
+     "import_s": 0.0010533110034884885,
+     "first_call_s": 4.928645023988793,
+     "times_s": [
+      4.681551465007942,
+      4.685107968005468,
+      4.586566919009783
+     ],
+     "cpu_s": [
+      8.434910474,
+      8.408777499,
+      8.293548801
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 2,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 2,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.8145971923817664,
+     "round": 0
+    },
+    {
+     "config": "dfcosmic_cpp",
+     "threads": 16,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 16,
+      "use_cpp": true
+     },
+     "import_s": 0.5194538530049613,
+     "first_call_s": 3.9641833519999636,
+     "times_s": [
+      3.9090695659979247,
+      4.042303920999984,
+      4.068496968000545
+     ],
+     "cpu_s": [
+      55.23818953599999,
+      56.29368625000001,
+      56.844710133999996
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 16,
+       "library": "libgomp.so.1"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 16,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.8488011321291182,
+     "round": 0
+    },
+    {
+     "config": "lacosmic",
+     "threads": 16,
+     "kwargs": {
+      "contrast": 2.0,
+      "cr_threshold": 6.0,
+      "neighbor_threshold": 6.0,
+      "effective_gain": 1.0,
+      "readnoise": 10.0,
+      "maxiter": 1
+     },
+     "import_s": 0.19298207499377895,
+     "first_call_s": 25.519748521008296,
+     "times_s": [
+      25.072169149003457,
+      25.00550881300296,
+      24.874964361006278
+     ],
+     "cpu_s": [
+      25.014023591999997,
+      24.945976482999995,
+      24.820400312999993
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 16,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 16,
+       "library": "libscipy_openblas-5f890258.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.6936810467234492,
+     "round": 0
+    },
+    {
+     "config": "astroscrappy_sepmed_false",
+     "threads": 8,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": false
+     },
+     "import_s": 0.001077072010957636,
+     "first_call_s": 4.464443716002279,
+     "times_s": [
+      4.429798461002065,
+      4.402129793001222,
+      4.407232398996712
+     ],
+     "cpu_s": [
+      29.206419895,
+      29.174221063999994,
+      29.13873243900001
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 8,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 8,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.20827949669070767,
+     "round": 0
+    },
+    {
+     "config": "astroscrappy_sepmed_false",
+     "threads": 16,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": false
+     },
+     "import_s": 0.0010863510105991736,
+     "first_call_s": 2.9394706199964276,
+     "times_s": [
+      2.945104025013279,
+      2.907428388003609,
+      2.9191005699976813
+     ],
+     "cpu_s": [
+      32.488612524000004,
+      32.423580617,
+      32.33702246
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 16,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 16,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 1.0282810979320316,
+     "round": 0
+    },
+    {
+     "config": "dfcosmic_cpp",
+     "threads": 8,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 8,
+      "use_cpp": true
+     },
+     "import_s": 0.47527896899555344,
+     "first_call_s": 5.674156665001647,
+     "times_s": [
+      5.605095654987963,
+      5.568443397001829,
+      5.617376588008483
+     ],
+     "cpu_s": [
+      43.244261998999995,
+      43.034579879000006,
+      43.396311784999995
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 8,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 8,
+       "library": "libgomp.so.1"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.4002695123264653,
+     "round": 0
+    },
+    {
+     "config": "dfcosmic_torch",
+     "threads": 2,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 2,
+      "use_cpp": false
+     },
+     "import_s": 0.4660695190104889,
+     "first_call_s": 24.768592345004436,
+     "times_s": [
+      24.701517955996678,
+      24.783587989004445,
+      24.522572025991394
+     ],
+     "cpu_s": [
+      49.082412623,
+      49.277168896000006,
+      48.77966614900001
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 2,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 2,
+       "library": "libgomp.so.1"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.5928037317481338,
+     "round": 0
+    },
+    {
+     "config": "astroscrappy_sepmed_false",
+     "threads": 2,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": false
+     },
+     "import_s": 0.0011351809953339398,
+     "first_call_s": 14.335086106002564,
+     "times_s": [
+      14.200436231010826,
+      14.143988223993802,
+      14.17201868200209
+     ],
+     "cpu_s": [
+      27.459942793000003,
+      27.37327850999999,
+      27.431171313000007
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 2,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 2,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.5871954200367704,
+     "round": 0
+    },
+    {
+     "config": "astroscrappy_sepmed_false",
+     "threads": 1,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": false
+     },
+     "import_s": 0.0010310010111425072,
+     "first_call_s": 27.075509556991165,
+     "times_s": [
+      26.930045300992788,
+      26.897268356988207,
+      26.946177646997967
+     ],
+     "cpu_s": [
+      26.86408993,
+      26.831044219,
+      26.88320204
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 1,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.2677835334010118,
+     "round": 0
+    },
+    {
+     "config": "astroscrappy_sepmed_true",
+     "threads": 8,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": true
+     },
+     "import_s": 0.0010175409988733009,
+     "first_call_s": 1.9124118360050488,
+     "times_s": [
+      1.9097740030119894,
+      1.902977046003798,
+      1.8905223040055716
+     ],
+     "cpu_s": [
+      9.398764519,
+      9.352871375,
+      9.232823477000004
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 8,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 8,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.09249594390627502,
+     "round": 1
+    },
+    {
+     "config": "dfcosmic_gpu",
+     "threads": 16,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cuda"
+     },
+     "import_s": 0.5162590599938994,
+     "first_call_s": 1.2793385080003645,
+     "times_s": [
+      0.9502914769982453,
+      0.9509394479973707,
+      0.9508170070039341
+     ],
+     "cpu_s": [
+      0.9482562519999997,
+      0.9488414439999997,
+      0.9488423719999997
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 16,
+       "library": "libgomp.so.1"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 16,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.2909715503661828,
+     "round": 1
+    },
+    {
+     "config": "lacosmic",
+     "threads": 16,
+     "kwargs": {
+      "contrast": 2.0,
+      "cr_threshold": 6.0,
+      "neighbor_threshold": 6.0,
+      "effective_gain": 1.0,
+      "readnoise": 10.0,
+      "maxiter": 1
+     },
+     "import_s": 0.1874705689988332,
+     "first_call_s": 24.69540387998859,
+     "times_s": [
+      24.708393602995784,
+      24.777233992994297,
+      24.67464618899976
+     ],
+     "cpu_s": [
+      24.657869805,
+      24.72765165300001,
+      24.626977982
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 16,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 16,
+       "library": "libscipy_openblas-5f890258.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.15052477898612532,
+     "round": 1
+    },
+    {
+     "config": "astroscrappy_sepmed_true",
+     "threads": 1,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": true
+     },
+     "import_s": 0.0009896209958242252,
+     "first_call_s": 7.972013998005423,
+     "times_s": [
+      7.935436792002292,
+      7.95487529100501,
+      7.979638156000874
+     ],
+     "cpu_s": [
+      7.916316830000001,
+      7.936021816,
+      7.960397441999998
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 1,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.26422871789932606,
+     "round": 1
+    },
+    {
+     "config": "astroscrappy_sepmed_true",
+     "threads": 16,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": true
+     },
+     "import_s": 0.0010462709906278178,
+     "first_call_s": 1.471058252005605,
+     "times_s": [
+      1.4777835379936732,
+      1.4786989589920267,
+      1.499024870005087
+     ],
+     "cpu_s": [
+      11.085415669,
+      11.091546442999999,
+      11.273400908
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 16,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 16,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.1384624658706706,
+     "round": 1
+    },
+    {
+     "config": "astroscrappy_sepmed_false",
+     "threads": 2,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": false
+     },
+     "import_s": 0.0009908809879561886,
+     "first_call_s": 14.266011276995414,
+     "times_s": [
+      14.1941445350094,
+      14.112571283010766,
+      14.167212977001327
+     ],
+     "cpu_s": [
+      27.443427517999996,
+      27.324021375000008,
+      27.418382374000004
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 2,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 2,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.5384481896941702,
+     "round": 1
+    },
+    {
+     "config": "dfcosmic_cpp",
+     "threads": 1,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 1,
+      "use_cpp": true
+     },
+     "import_s": 0.46987640399311204,
+     "first_call_s": 33.420084035999025,
+     "times_s": [
+      33.270178235994535,
+      33.48444807100168,
+      33.40930401599326
+     ],
+     "cpu_s": [
+      33.19797865000001,
+      33.410588884000006,
+      33.335804937999995
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 1,
+       "library": "libgomp.so.1"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.19368802085084466,
+     "round": 1
+    },
+    {
+     "config": "dfcosmic_gpu",
+     "threads": 1,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cuda"
+     },
+     "import_s": 0.4939117679896299,
+     "first_call_s": 1.2743415240111062,
+     "times_s": [
+      0.9535808000073303,
+      0.9567600439913804,
+      0.9532490500132553
+     ],
+     "cpu_s": [
+      0.952261131,
+      0.9550952829999999,
+      0.9516426720000002
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 1,
+       "library": "libgomp.so.1"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.45575901887133724,
+     "round": 1
+    },
+    {
+     "config": "dfcosmic_cpp",
+     "threads": 16,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 16,
+      "use_cpp": true
+     },
+     "import_s": 0.4623262460081605,
+     "first_call_s": 3.4683355029992526,
+     "times_s": [
+      3.4510690750030335,
+      3.4697165039979154,
+      3.462806648007245
+     ],
+     "cpu_s": [
+      53.206810864999994,
+      53.417493471,
+      53.29956610900001
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 16,
+       "library": "libgomp.so.1"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 16,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.22528890682130676,
+     "round": 1
+    },
+    {
+     "config": "dfcosmic_cpp",
+     "threads": 2,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 2,
+      "use_cpp": true
+     },
+     "import_s": 0.463202585990075,
+     "first_call_s": 17.814296350989025,
+     "times_s": [
+      17.759140605005086,
+      17.7598279449885,
+      17.737449883003137
+     ],
+     "cpu_s": [
+      35.345491999,
+      35.301700509,
+      35.313941615000005
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 2,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 2,
+       "library": "libgomp.so.1"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.21684050723387993,
+     "round": 1
+    },
+    {
+     "config": "dfcosmic_torch",
+     "threads": 1,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 1,
+      "use_cpp": false
+     },
+     "import_s": 0.45937271299771965,
+     "first_call_s": 45.03847494699585,
+     "times_s": [
+      44.967820156001835,
+      45.18500724500336,
+      45.26741730800131
+     ],
+     "cpu_s": [
+      44.863020203,
+      45.08038935399999,
+      45.155666526999994
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 1,
+       "library": "libgomp.so.1"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.2700812970383666,
+     "round": 1
+    },
+    {
+     "config": "dfcosmic_cpp",
+     "threads": 4,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 4,
+      "use_cpp": true
+     },
+     "import_s": 0.46415086700289976,
+     "first_call_s": 9.580364467998152,
+     "times_s": [
+      9.52452915199683,
+      9.45280831999844,
+      9.4880181250046
+     ],
+     "cpu_s": [
+      37.669883780999996,
+      37.42595960199999,
+      37.513414744
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 4,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 4,
+       "library": "libgomp.so.1"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.30873518844859155,
+     "round": 1
+    },
+    {
+     "config": "dfcosmic_torch",
+     "threads": 2,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 2,
+      "use_cpp": false
+     },
+     "import_s": 0.4984458430117229,
+     "first_call_s": 24.398249189995113,
+     "times_s": [
+      24.209645142007503,
+      24.205642067012377,
+      24.355861087999074
+     ],
+     "cpu_s": [
+      48.206138923000005,
+      48.20984911400001,
+      48.49265737799999
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 2,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 2,
+       "library": "libgomp.so.1"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.3064609200239841,
+     "round": 1
+    },
+    {
+     "config": "astroscrappy_sepmed_true",
+     "threads": 4,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": true
+     },
+     "import_s": 0.0009838309924816713,
+     "first_call_s": 2.9435549340123544,
+     "times_s": [
+      2.846513786993455,
+      2.7997398389998125,
+      2.8729725339944707
+     ],
+     "cpu_s": [
+      8.744231248000002,
+      8.608931495,
+      8.826311467999997
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 4,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 4,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.48071062729956077,
+     "round": 1
+    },
+    {
+     "config": "astroscrappy_sepmed_false",
+     "threads": 16,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": false
+     },
+     "import_s": 0.001028462007525377,
+     "first_call_s": 2.821905500997673,
+     "times_s": [
+      2.8135173640039284,
+      2.790083779997076,
+      2.824512974009849
+     ],
+     "cpu_s": [
+      31.953228699999997,
+      31.741320384999995,
+      31.938112226000015
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 16,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 16,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.16147821111813873,
+     "round": 1
+    },
+    {
+     "config": "astroscrappy_sepmed_false",
+     "threads": 1,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": false
+     },
+     "import_s": 0.0010217310045845807,
+     "first_call_s": 27.318565441993997,
+     "times_s": [
+      27.188686940993648,
+      27.32357075699838,
+      26.82701385700784
+     ],
+     "cpu_s": [
+      27.131660508000003,
+      27.258788740999996,
+      26.76577159899999
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 1,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.615987851488331,
+     "round": 1
+    },
+    {
+     "config": "lacosmic",
+     "threads": 1,
+     "kwargs": {
+      "contrast": 2.0,
+      "cr_threshold": 6.0,
+      "neighbor_threshold": 6.0,
+      "effective_gain": 1.0,
+      "readnoise": 10.0,
+      "maxiter": 1
+     },
+     "import_s": 0.18523484701290727,
+     "first_call_s": 24.85773065399553,
+     "times_s": [
+      24.776450161996763,
+      24.676768441000604,
+      24.682309556999826
+     ],
+     "cpu_s": [
+      24.723185533999995,
+      24.624242812,
+      24.62552565499999
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas-5f890258.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.08207297135395634,
+     "round": 1
+    },
+    {
+     "config": "astroscrappy_sepmed_false",
+     "threads": 4,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": false
+     },
+     "import_s": 0.0010751709924079478,
+     "first_call_s": 7.665303438989213,
+     "times_s": [
+      7.699708034997457,
+      7.6266426910005976,
+      7.614133268012665
+     ],
+     "cpu_s": [
+      28.061153084999997,
+      27.927015642999997,
+      27.871094354999997
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 4,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 4,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.13676696649839376,
+     "round": 1
+    },
+    {
+     "config": "astroscrappy_sepmed_false",
+     "threads": 8,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": false
+     },
+     "import_s": 0.0010039610060630366,
+     "first_call_s": 4.411735372996191,
+     "times_s": [
+      4.416745938011445,
+      4.414667715987889,
+      4.411481981995166
+     ],
+     "cpu_s": [
+      29.230707737000003,
+      29.21751572899999,
+      29.268578277000003
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 8,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 8,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.08418047491767758,
+     "round": 1
+    },
+    {
+     "config": "dfcosmic_torch",
+     "threads": 8,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 8,
+      "use_cpp": false
+     },
+     "import_s": 0.4652616380044492,
+     "first_call_s": 8.319241138990037,
+     "times_s": [
+      8.296914555001422,
+      8.280673689005198,
+      8.178054766001878
+     ],
+     "cpu_s": [
+      65.461367924,
+      65.334509142,
+      64.47655496200002
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 8,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 8,
+       "library": "libgomp.so.1"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.11766246099657061,
+     "round": 1
+    },
+    {
+     "config": "dfcosmic_cpp",
+     "threads": 8,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 8,
+      "use_cpp": true
+     },
+     "import_s": 0.4591904929984594,
+     "first_call_s": 5.424805043003289,
+     "times_s": [
+      5.4194924980110954,
+      5.434358472004533,
+      5.430437199000153
+     ],
+     "cpu_s": [
+      42.570270151,
+      42.565572802000005,
+      42.57883081700001
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 8,
+       "library": "libgomp.so.1"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 8,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.1107948060355291,
+     "round": 1
+    },
+    {
+     "config": "dfcosmic_torch",
+     "threads": 4,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 4,
+      "use_cpp": false
+     },
+     "import_s": 0.47661599999992177,
+     "first_call_s": 13.860431709006662,
+     "times_s": [
+      13.52707228300278,
+      13.506046651993529,
+      13.489584915005253
+     ],
+     "cpu_s": [
+      53.700698177,
+      53.61567123999998,
+      53.553656314999984
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 4,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 4,
+       "library": "libgomp.so.1"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.10213104259201976,
+     "round": 1
+    },
+    {
+     "config": "astroscrappy_sepmed_true",
+     "threads": 2,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": true
+     },
+     "import_s": 0.0010334609978599474,
+     "first_call_s": 4.5543550360016525,
+     "times_s": [
+      4.546788338993792,
+      4.4813470329972915,
+      4.496417678994476
+     ],
+     "cpu_s": [
+      8.209681559,
+      8.122484342,
+      8.137527520999999
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 2,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 2,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.07690583094321049,
+     "round": 1
+    },
+    {
+     "config": "dfcosmic_torch",
+     "threads": 16,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 16,
+      "use_cpp": false
+     },
+     "import_s": 0.45593223899777513,
+     "first_call_s": 6.010285982993082,
+     "times_s": [
+      6.091917515004752,
+      6.15397619700525,
+      6.17041350400541
+     ],
+     "cpu_s": [
+      95.00094755,
+      95.859867105,
+      96.020182401
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 16,
+       "library": "libgomp.so.1"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 16,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.24720023409459554,
+     "round": 1
+    },
+    {
+     "config": "astroscrappy_sepmed_false",
+     "threads": 8,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": false
+     },
+     "import_s": 0.0009804409928619862,
+     "first_call_s": 4.464386405990808,
+     "times_s": [
+      4.423368094008765,
+      4.4290071400027955,
+      4.410852093002177
+     ],
+     "cpu_s": [
+      29.281354977999996,
+      29.257976270999997,
+      29.254798801000007
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 8,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 8,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.09524995348454486,
+     "round": 2
+    },
+    {
+     "config": "dfcosmic_cpp",
+     "threads": 4,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 4,
+      "use_cpp": true
+     },
+     "import_s": 0.47392771700106096,
+     "first_call_s": 9.553967532003298,
+     "times_s": [
+      9.527347795010428,
+      9.520388268007082,
+      9.520776757999556
+     ],
+     "cpu_s": [
+      37.684237460000006,
+      37.556729043000004,
+      37.597398522000006
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 4,
+       "library": "libgomp.so.1"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 4,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.1070107926566178,
+     "round": 2
+    },
+    {
+     "config": "dfcosmic_torch",
+     "threads": 1,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 1,
+      "use_cpp": false
+     },
+     "import_s": 0.4618716949917143,
+     "first_call_s": 45.20492034500057,
+     "times_s": [
+      45.24487671499082,
+      45.087181977010914,
+      45.10126948999823
+     ],
+     "cpu_s": [
+      45.132231563999994,
+      44.977006660000015,
+      44.9970285
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 1,
+       "library": "libgomp.so.1"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.08947569310207232,
+     "round": 2
+    },
+    {
+     "config": "astroscrappy_sepmed_false",
+     "threads": 1,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": false
+     },
+     "import_s": 0.0010955610050586984,
+     "first_call_s": 27.190093523007818,
+     "times_s": [
+      27.10542265699769,
+      27.090069052006584,
+      26.858013347999076
+     ],
+     "cpu_s": [
+      27.047377812999997,
+      27.029445401999993,
+      26.795545831999988
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 1,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.41296116248368336,
+     "round": 2
+    },
+    {
+     "config": "astroscrappy_sepmed_false",
+     "threads": 4,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": false
+     },
+     "import_s": 0.0010280910064466298,
+     "first_call_s": 7.620855124987429,
+     "times_s": [
+      7.644658289005747,
+      7.657481921007275,
+      7.625035238990677
+     ],
+     "cpu_s": [
+      27.929797981,
+      27.994505476000008,
+      27.901222919999995
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 4,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 4,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.08406075063064687,
+     "round": 2
+    },
+    {
+     "config": "dfcosmic_torch",
+     "threads": 8,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 8,
+      "use_cpp": false
+     },
+     "import_s": 0.48136136500397697,
+     "first_call_s": 9.569103917005123,
+     "times_s": [
+      9.549435866996646,
+      9.417090734001249,
+      9.369363044999773
+     ],
+     "cpu_s": [
+      70.94506924699999,
+      70.132057038,
+      70.514773252
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 8,
+       "library": "libgomp.so.1"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 8,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.12257069365275448,
+     "round": 2
+    },
+    {
+     "config": "dfcosmic_torch",
+     "threads": 16,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 16,
+      "use_cpp": false
+     },
+     "import_s": 0.4645425479975529,
+     "first_call_s": 7.0625640629878035,
+     "times_s": [
+      6.808779977000086,
+      7.157133686996531,
+      6.99668975599343
+     ],
+     "cpu_s": [
+      100.013768731,
+      104.23552676999998,
+      102.71479279099998
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 16,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 16,
+       "library": "libgomp.so.1"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.053614921698729036,
+     "round": 2
+    },
+    {
+     "config": "astroscrappy_sepmed_true",
+     "threads": 4,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": true
+     },
+     "import_s": 0.00101795099908486,
+     "first_call_s": 2.778411867999239,
+     "times_s": [
+      2.8207223000063095,
+      2.7965888870094204,
+      2.845198464987334
+     ],
+     "cpu_s": [
+      8.625633711000003,
+      8.590406402,
+      8.686211235000002
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 4,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 4,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.08948949938335417,
+     "round": 2
+    },
+    {
+     "config": "astroscrappy_sepmed_true",
+     "threads": 1,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": true
+     },
+     "import_s": 0.000971590998233296,
+     "first_call_s": 8.007701005000854,
+     "times_s": [
+      7.980012036001426,
+      7.97860405499523,
+      7.962262868997641
+     ],
+     "cpu_s": [
+      7.959084831,
+      7.954713674000001,
+      7.940891565000001
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 1,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.0813249400515299,
+     "round": 2
+    },
+    {
+     "config": "astroscrappy_sepmed_true",
+     "threads": 8,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": true
+     },
+     "import_s": 0.001024760989821516,
+     "first_call_s": 1.9136670369916828,
+     "times_s": [
+      1.9304031539941207,
+      1.914547748005134,
+      1.9147192780073965
+     ],
+     "cpu_s": [
+      9.456549103,
+      9.371313438999998,
+      9.370515629
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 8,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 8,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.11996843595409025,
+     "round": 2
+    },
+    {
+     "config": "astroscrappy_sepmed_false",
+     "threads": 2,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": false
+     },
+     "import_s": 0.0010320110013708472,
+     "first_call_s": 14.145414934988366,
+     "times_s": [
+      14.118825608995394,
+      14.121324911000556,
+      14.14814038798795
+     ],
+     "cpu_s": [
+      27.307634527999998,
+      27.305990889999997,
+      27.380247013
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 2,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 2,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.07400882585397241,
+     "round": 2
+    },
+    {
+     "config": "astroscrappy_sepmed_false",
+     "threads": 16,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": false
+     },
+     "import_s": 0.0010766119958134368,
+     "first_call_s": 2.8254242749972036,
+     "times_s": [
+      2.825726235998445,
+      2.8168694070045603,
+      2.8242191839963198
+     ],
+     "cpu_s": [
+      31.944214383000002,
+      31.919985409999995,
+      31.986195071999987
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 16,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 16,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.1205704952952547,
+     "round": 2
+    },
+    {
+     "config": "astroscrappy_sepmed_true",
+     "threads": 16,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": true
+     },
+     "import_s": 0.0010567010031081736,
+     "first_call_s": 1.5046762359997956,
+     "times_s": [
+      1.5140764239913551,
+      1.499651480000466,
+      1.5159319970116485
+     ],
+     "cpu_s": [
+      11.381794532999999,
+      11.304829361000003,
+      11.305494482
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 16,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 16,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.49288454557562583,
+     "round": 2
+    },
+    {
+     "config": "dfcosmic_gpu",
+     "threads": 1,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cuda"
+     },
+     "import_s": 0.4918568759894697,
+     "first_call_s": 1.314245472996845,
+     "times_s": [
+      0.9587425850040745,
+      0.9561911729979329,
+      0.9546254209999461
+     ],
+     "cpu_s": [
+      0.9566699599999999,
+      0.9544402430000001,
+      0.95284301
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 1,
+       "library": "libgomp.so.1"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.2926833239717323,
+     "round": 2
+    },
+    {
+     "config": "astroscrappy_sepmed_true",
+     "threads": 2,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "sepmed": true
+     },
+     "import_s": 0.0010670010087778792,
+     "first_call_s": 4.589159890994779,
+     "times_s": [
+      4.549035692005418,
+      4.618900121000479,
+      4.516629768986604
+     ],
+     "cpu_s": [
+      8.226014729,
+      8.309642986,
+      8.159118964999998
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 2,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 2,
+       "library": "libgomp-870cb1d0.so.1.0.0"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.31755745004460884,
+     "round": 2
+    },
+    {
+     "config": "lacosmic",
+     "threads": 16,
+     "kwargs": {
+      "contrast": 2.0,
+      "cr_threshold": 6.0,
+      "neighbor_threshold": 6.0,
+      "effective_gain": 1.0,
+      "readnoise": 10.0,
+      "maxiter": 1
+     },
+     "import_s": 0.20320062500832137,
+     "first_call_s": 25.139839586991002,
+     "times_s": [
+      25.197032605996355,
+      24.875583272005315,
+      24.784546468988992
+     ],
+     "cpu_s": [
+      25.142722894,
+      24.823050152999997,
+      24.731872036
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 16,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 16,
+       "library": "libscipy_openblas-5f890258.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.8566290099908663,
+     "round": 2
+    },
+    {
+     "config": "dfcosmic_cpp",
+     "threads": 2,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 2,
+      "use_cpp": true
+     },
+     "import_s": 0.46486689799348824,
+     "first_call_s": 17.935693231993355,
+     "times_s": [
+      17.875335592005285,
+      17.97934200699092,
+      17.916119042987702
+     ],
+     "cpu_s": [
+      35.424436567,
+      35.622904663,
+      35.505607865000016
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 2,
+       "library": "libgomp.so.1"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 2,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.0871537907600271,
+     "round": 2
+    },
+    {
+     "config": "dfcosmic_cpp",
+     "threads": 8,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 8,
+      "use_cpp": true
+     },
+     "import_s": 0.47538144800637383,
+     "first_call_s": 5.636480256987852,
+     "times_s": [
+      5.639160478996928,
+      5.5845561739988625,
+      5.599742199003231
+     ],
+     "cpu_s": [
+      43.080525854,
+      42.90856004499999,
+      42.767625203999984
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 8,
+       "library": "libgomp.so.1"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 8,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.1115579804997619,
+     "round": 2
+    },
+    {
+     "config": "dfcosmic_cpp",
+     "threads": 16,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 16,
+      "use_cpp": true
+     },
+     "import_s": 0.4647188679955434,
+     "first_call_s": 3.691045118001057,
+     "times_s": [
+      3.67418587001157,
+      3.6849733110138914,
+      3.6717510879971087
+     ],
+     "cpu_s": [
+      54.578102608,
+      54.32626157200001,
+      54.310550981000006
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 16,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 16,
+       "library": "libgomp.so.1"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.19288680641437309,
+     "round": 2
+    },
+    {
+     "config": "dfcosmic_cpp",
+     "threads": 1,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 1,
+      "use_cpp": true
+     },
+     "import_s": 0.46559843901195563,
+     "first_call_s": 33.76039895899885,
+     "times_s": [
+      33.73521875499864,
+      33.9140477040055,
+      34.170155191997765
+     ],
+     "cpu_s": [
+      33.659099861,
+      33.83207151800001,
+      34.092518623000004
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 1,
+       "library": "libgomp.so.1"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.26269528876300646,
+     "round": 2
+    },
+    {
+     "config": "dfcosmic_gpu",
+     "threads": 16,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cuda"
+     },
+     "import_s": 0.4903371339896694,
+     "first_call_s": 1.2881602470006328,
+     "times_s": [
+      0.9537996610015398,
+      0.9550951720011653,
+      0.9527506790036568
+     ],
+     "cpu_s": [
+      0.951504248,
+      0.9529650310000006,
+      0.9507226270000002
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 16,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 16,
+       "library": "libgomp.so.1"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.05993970764042417,
+     "round": 2
+    },
+    {
+     "config": "lacosmic",
+     "threads": 1,
+     "kwargs": {
+      "contrast": 2.0,
+      "cr_threshold": 6.0,
+      "neighbor_threshold": 6.0,
+      "effective_gain": 1.0,
+      "readnoise": 10.0,
+      "maxiter": 1
+     },
+     "import_s": 0.1862244469957659,
+     "first_call_s": 25.255062973999884,
+     "times_s": [
+      24.976526473008562,
+      24.722888338001212,
+      24.66275431700342
+     ],
+     "cpu_s": [
+      24.922631103999997,
+      24.667391001000006,
+      24.608421144999994
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas-5f890258.so"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.6638897269229942,
+     "round": 2
+    },
+    {
+     "config": "dfcosmic_torch",
+     "threads": 4,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 4,
+      "use_cpp": false
+     },
+     "import_s": 0.46571257899631746,
+     "first_call_s": 13.550765837004292,
+     "times_s": [
+      13.730546428007074,
+      13.725422661998891,
+      13.737722955003846
+     ],
+     "cpu_s": [
+      54.420594604,
+      54.39921901799998,
+      54.41281687199998
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 4,
+       "library": "libgomp.so.1"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 4,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.5508648809655272,
+     "round": 2
+    },
+    {
+     "config": "dfcosmic_torch",
+     "threads": 2,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 1,
+      "device": "cpu",
+      "cpu_threads": 2,
+      "use_cpp": false
+     },
+     "import_s": 0.46121413400396705,
+     "first_call_s": 24.570957315008854,
+     "times_s": [
+      24.57928343299136,
+      25.71169931399345,
+      24.997895715001505
+     ],
+     "cpu_s": [
+      48.941182227000006,
+      51.07436093899999,
+      49.647246884
+     ],
+     "passes": 1,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 2,
+       "library": "libgomp.so.1"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 2,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 1.1816523861083787,
+     "round": 2
+    }
+   ],
+   "finished": "2026-10-01T19:38:45"
+  },
+  "niter4": {
+   "settings": {
+    "image": "synthetic",
+    "shape": [
+     4000,
+     6500
+    ],
+    "dtype": "float32",
+    "seed": 200,
+    "params": {
+     "sigclip": 6.0,
+     "sigfrac": 1.0,
+     "objlim": 2.0,
+     "gain": 1.0,
+     "readnoise": 10.0
+    },
+    "niter": 4,
+    "threads": [
+     1,
+     2
+    ],
+    "rounds": 1,
+    "repeats": 3,
+    "warmup_calls": 1,
+    "shuffle_seed": 0
+   },
+   "started": "2026-10-01T19:54:59",
+   "system": {
+    "cpu": "AMD Ryzen 9 9950X 16-Core Processor",
+    "physical_cores": 16,
+    "logical_cpus": 32,
+    "ram_gb": 60.4,
+    "cpu_governor": "performance",
+    "cpu_boost": "1",
+    "os": "Fedora Linux 44 (Workstation Edition)",
+    "kernel": "Linux 7.2.7-200.fc44.x86_64",
+    "machine": "x86_64",
+    "python": "3.12.13",
+    "nvidia_driver": "NVRM version: NVIDIA UNIX Open Kernel Module for x86_64  615.71.09  Release Build  (dvs-builder@U22-I3-F05-2-4)  Fri Sep  4 22:33:33 UTC 2026",
+    "dfcosmic_commit": "1b4d912",
+    "dfcosmic_src_modified": false
+   },
+   "gpu": {
+    "name": "NVIDIA GeForce RTX 5060 Ti",
+    "memory_gb": 15.6,
+    "cuda": "13.0"
+   },
+   "versions": {
+    "dfcosmic": "0.1.0",
+    "torch": "2.14.1+cu130",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "astropy": "8.0.1",
+    "astroscrappy": "1.3.0",
+    "lacosmic": "1.4.0",
+    "threadpoolctl": "3.7.0"
+   },
+   "configs": {
+    "dfcosmic_torch": {
+     "package": "dfcosmic",
+     "label": "dfcosmic \u00b7 CPU, PyTorch only",
+     "threads": "all",
+     "note": "What `pip install dfcosmic` gives."
+    },
+    "dfcosmic_cpp": {
+     "package": "dfcosmic",
+     "label": "dfcosmic \u00b7 CPU, C++ median filter",
+     "threads": "all",
+     "note": "Needs the optional C++ extension, built from source."
+    },
+    "dfcosmic_gpu": {
+     "package": "dfcosmic",
+     "label": "dfcosmic \u00b7 GPU",
+     "threads": "ends",
+     "note": "Includes the transfer of the image to and from the GPU."
+    }
+   },
+   "runs": [
+    {
+     "config": "dfcosmic_gpu",
+     "threads": 1,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 4,
+      "device": "cuda"
+     },
+     "import_s": 0.4931210059876321,
+     "first_call_s": 2.083378017996438,
+     "times_s": [
+      1.756427350002923,
+      1.7287583100114716,
+      1.7731503160030115
+     ],
+     "cpu_s": [
+      1.754041445,
+      1.726615282,
+      1.7715813110000003
+     ],
+     "passes": 2,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 1,
+       "library": "libgomp.so.1"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 1.0781741889992915,
+     "round": 0
+    },
+    {
+     "config": "dfcosmic_cpp",
+     "threads": 1,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 4,
+      "device": "cpu",
+      "cpu_threads": 1,
+      "use_cpp": true
+     },
+     "import_s": 0.46468189799634274,
+     "first_call_s": 61.9925726710062,
+     "times_s": [
+      61.55807720399753,
+      60.822543193004094,
+      60.96452376600064
+     ],
+     "cpu_s": [
+      61.412401706000004,
+      60.67187879199999,
+      60.82954758599999
+     ],
+     "passes": 2,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 1,
+       "library": "libgomp.so.1"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.6352416517006622,
+     "round": 0
+    },
+    {
+     "config": "dfcosmic_torch",
+     "threads": 2,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 4,
+      "device": "cpu",
+      "cpu_threads": 2,
+      "use_cpp": false
+     },
+     "import_s": 0.4729908669978613,
+     "first_call_s": 45.126598506001756,
+     "times_s": [
+      46.617080027994234,
+      45.76820368198969,
+      45.68697213000269
+     ],
+     "cpu_s": [
+      92.398123201,
+      90.611253001,
+      90.49970265000002
+     ],
+     "passes": 2,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 2,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 2,
+       "library": "libgomp.so.1"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.649164990038736,
+     "round": 0
+    },
+    {
+     "config": "dfcosmic_torch",
+     "threads": 1,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 4,
+      "device": "cpu",
+      "cpu_threads": 1,
+      "use_cpp": false
+     },
+     "import_s": 0.4628123360016616,
+     "first_call_s": 85.71165073900193,
+     "times_s": [
+      86.07583198499924,
+      86.53442500700476,
+      85.35821221199876
+     ],
+     "cpu_s": [
+      85.855594413,
+      86.32210076300001,
+      85.12996020099996
+     ],
+     "passes": 2,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 1,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      },
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 1,
+       "library": "libgomp.so.1"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 1.0226247456927209,
+     "round": 0
+    },
+    {
+     "config": "dfcosmic_gpu",
+     "threads": 2,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 4,
+      "device": "cuda"
+     },
+     "import_s": 0.6271695809991797,
+     "first_call_s": 2.0874295930116205,
+     "times_s": [
+      1.7195756809960585,
+      1.7211577740090434,
+      1.7222131640010048
+     ],
+     "cpu_s": [
+      1.7158926759999997,
+      1.7183206140000005,
+      1.7192715850000004
+     ],
+     "passes": 2,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 2,
+       "library": "libgomp.so.1"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 2,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 1.3781417363860795,
+     "round": 0
+    },
+    {
+     "config": "dfcosmic_cpp",
+     "threads": 2,
+     "kwargs": {
+      "sigclip": 6.0,
+      "sigfrac": 1.0,
+      "objlim": 2.0,
+      "gain": 1.0,
+      "readnoise": 10.0,
+      "niter": 4,
+      "device": "cpu",
+      "cpu_threads": 2,
+      "use_cpp": true
+     },
+     "import_s": 0.46242680499562994,
+     "first_call_s": 33.15528330000234,
+     "times_s": [
+      32.705088186994544,
+      32.56094287199085,
+      32.62223746300151
+     ],
+     "cpu_s": [
+      64.72693625400001,
+      64.46041478999999,
+      64.62324439900001
+     ],
+     "passes": 2,
+     "n_flagged": 100,
+     "n_injected": 100,
+     "n_injected_flagged": 100,
+     "output_dtype": "float32",
+     "pools": [
+      {
+       "user_api": "openmp",
+       "internal_api": "openmp",
+       "num_threads": 2,
+       "library": "libgomp.so.1"
+      },
+      {
+       "user_api": "blas",
+       "internal_api": "openblas",
+       "num_threads": 2,
+       "library": "libscipy_openblas64_-f48b354e.so"
+      }
+     ],
+     "limit_ok": true,
+     "input_unchanged": true,
+     "background_busy_cpus": 0.9232106406957343,
+     "round": 0
+    }
+   ],
+   "finished": "2026-10-01T20:10:34"
+  }
+ }
+}
