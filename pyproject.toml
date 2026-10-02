@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dfcosmic"
-version = "0.1.0"
+version = "0.2.0"
 dynamic = []
 authors = [
   { name = "Carter Rhea", email = "carter.rhea@dragonfly1000.com" },
@@ -52,9 +52,10 @@ notebooks = [
   "matplotlib>=3.10.7",
   "cmcrameri>=1.9",
   "astropy>=5.3",
-  # the codes dfcosmic is compared with in HST.ipynb and Comparison.ipynb
+  # the codes dfcosmic is compared with in HST.ipynb and benchmark.py
   "astroscrappy",
-  "lacosmic",
+  # remove_cosmics needs lacosmic 1.4, which needs Python 3.11
+  "lacosmic>=1.4; python_version >= '3.11'",
 ]
 docs = [
   "sphinx>=5.0.0",
