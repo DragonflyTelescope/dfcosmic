@@ -75,7 +75,8 @@ jobs:
 
   test-cpp:
     # Installs the optional C++ median filter the way the README documents it and
-    # checks that it was really built and matches the torch median filter.
+    # checks that it was really built and matches the torch median filter. This job
+    # also runs the timing comparison script on a small image with every code.
     name: test C++ extension (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
@@ -99,6 +100,8 @@ jobs:
           python -m pip install --no-cache-dir "setuptools>=77"
           python -m pip install --no-cache-dir --no-build-isolation -e .
           python -m pip install --no-cache-dir "pytest>=8.3.4" "pytest-cov>=6.0.0" astropy
+          # The codes that demos/benchmark.py compares dfcosmic with, and its plots
+          python -m pip install --no-cache-dir astroscrappy "lacosmic>=1.4" matplotlib
 
       - name: Check that the extension is available
         run: python -c "import dfcosmic.utils as u; assert u.cpp_median_available(), u._CPP_MEDIAN_UNAVAILABLE_REASON"
@@ -106,4 +109,5 @@ jobs:
       - name: Run tests
         env:
           DFCOSMIC_REQUIRE_CPP: "1"
+          DFCOSMIC_REQUIRE_BENCHMARK: "1"
         run: pytest

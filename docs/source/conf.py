@@ -6,8 +6,10 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+import shutil
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as _version
+from pathlib import Path
 
 project = "dfcosmic"
 author = (
@@ -77,5 +79,14 @@ copybutton_only_copy_prompt_lines = True
 # Exclude build directory and Jupyter backup files
 exclude_patterns = ["_build", "**.ipynb_checkpoints"]
 
-nbsphinx_execute = "auto"  # Execute notebooks during build
-nbsphinx_allow_errors = True
+# The example notebooks and the timing figures live in demos/ at the top of the
+# repository. They are copied here at build time, so that there is only one copy to
+# keep up to date, and are shown with their stored outputs rather than re-executed.
+_demos = Path(__file__).resolve().parents[2] / "demos"
+_docs_demos = Path(__file__).resolve().parent / "demos"
+_docs_demos.mkdir(exist_ok=True)
+for _pattern in ("*.ipynb", "comparison*.png"):
+    for _file in _demos.glob(_pattern):
+        shutil.copy2(_file, _docs_demos / _file.name)
+
+nbsphinx_execute = "never"

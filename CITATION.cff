@@ -3,7 +3,7 @@ message: "If you use this software, please cite it using the metadata from this 
 type: software
 title: "dfcosmic"
 abstract: "A high-performance Python package for cosmic ray removal following the original paper by van Dokkum 2001."
-version: 0.1.0
+version: 0.2.0
 license: GPL-3.0-only
 doi: 10.5281/zenodo.18451350
 repository-code: "https://github.com/DragonflyTelescope/dfcosmic"

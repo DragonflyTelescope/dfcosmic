@@ -65,7 +65,21 @@ cd docs
 make html
 ```
 
-The result is in `docs/build/html`. The notebooks shown in the documentation are the copies in `docs/source/demos`.
+The result is in `docs/build/html`. The notebooks shown in the documentation are the ones in `demos/`, with the outputs stored in them: they are copied into `docs/source/demos` when the documentation is built and are not re-executed. After changing a notebook, run it and save it with its outputs.
+
+## Re-running the timing comparison
+
+The timing figure and tables in the README, the documentation and the paper come from `demos/benchmark_results.json`, which is written by `demos/benchmark.py`. The script needs the C++ median filter (see above), `astroscrappy`, `lacosmic` and `matplotlib` (`pip install -e ".[notebooks]"`), and a CUDA build of PyTorch for the GPU timing.
+
+```bash
+python demos/benchmark.py run --quick                  # a minute, to check the set-up
+python demos/benchmark.py run                          # niter=1, 1 to 16 threads
+python demos/benchmark.py run --niter 4 --threads 1 2 --rounds 3 --repeats 2
+python demos/benchmark.py run --image hst --rounds 3 --repeats 2   # a crowded image
+python demos/benchmark.py report                       # tables and figures
+```
+
+The three full runs take about 80, 50 and 40 minutes and should have the machine to itself; an interrupted run continues where it stopped. Afterwards re-run `demos/Comparison.ipynb` and update the numbers quoted in `README.md`, `docs/source/index.rst` and `paper.md` from the output of `report`.
 
 ## Submitting a pull request
 

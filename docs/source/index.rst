@@ -26,18 +26,21 @@ flagging the cores of bright stars.
 *dfcosmic* is a good choice if:
 
 - **You need results that match the original algorithm.** *dfcosmic* always uses a
-  true (non-separable) median filter, and its mask agrees closely with the IRAF mask
-  on the *HST* WFPC2 frame from van Dokkum 2001 (see the examples).
-- **You need that at scale.** With the optional C++ median filter and two or more
-  threads, it is faster than the other true-median implementations we tested, and on
-  a GPU it is more than an order of magnitude faster (see the timing analysis below).
+  true (non-separable) median filter. On the *HST* WFPC2 frame from van Dokkum 2001
+  its mask agrees with the IRAF mask more closely than the masks of the other codes
+  do (see the HST example).
+- **You need that at scale.** On a 4000 × 6500 image and two threads, the
+  configuration of the MOTHRA pipeline, *dfcosmic* with its optional C++ median filter
+  takes 30 to 40% less time than astroscrappy with a true median filter. On a GPU it
+  takes less than half a second per image (see the timing analysis below).
 
 `astroscrappy <https://github.com/astropy/astroscrappy>`_ with its default settings
 (``sepmed=True``) is the better choice if:
 
 - **CPU speed matters more to you than exact agreement with the original
-  algorithm.** Its separable median filter is much faster on a CPU, at the cost of a
-  different mask, most visibly in the cores of bright stars.
+  algorithm.** Its separable median filter is 1.5 to 4.4 times faster than
+  *dfcosmic* on a CPU, at the cost of a different mask, most visibly in the cores of bright
+  stars.
 - **You do not want PyTorch as a dependency**, which is a large install.
 - **You need features that dfcosmic does not have**, such as input masks, saturation
   handling or a background/variance image.
@@ -112,7 +115,32 @@ Timing Analysis
    :align: center
 
 
-**Timing analysis** of `dfcosmic` versus `lacosmic` and `astroscrappy`. Note that `dfcosmic` exclusively uses a true median (i.e. `sepmed=False`).
+**Timing analysis** of *dfcosmic* versus *astroscrappy* and *lacosmic*: runtime per
+4000 × 6500 image against the number of CPU threads. Every code gets the same image
+and parameters and runs one iteration (``niter=1``); each point is the median of 15
+timed calls, made in five separate processes after a warm-up call. The range of the
+calls, at most 12% of the median, is smaller than the markers. Measured with
+*dfcosmic* 0.2.0, *astroscrappy* 1.3.0, *lacosmic* 1.4.0 and PyTorch 2.14.1 on an
+AMD Ryzen 9 9950X (16 cores, 32 threads) and NVIDIA GeForce RTX 5060 Ti (16 GB).
+
+- Against the other true-median codes, *dfcosmic* with the C++ median filter is the
+  fastest at every number of threads: it takes 44% less time than astroscrappy with
+  ``sepmed=False`` on one thread, 40% less on two and 23% less on 16.
+- As installed from PyPI (PyTorch only), *dfcosmic* is faster than astroscrappy with a
+  true median filter on one to four threads, about level on eight, and 16% slower on
+  16.
+- On the GPU an image takes 0.33 s.
+- astroscrappy's default (``sepmed=True``) is 1.5 to 1.9 times faster than *dfcosmic*
+  on the CPU. It uses a separable median filter, which is a different algorithm and
+  gives a different mask.
+- This image has only 100 cosmic rays, and the runtime of *dfcosmic* depends on their
+  number. On a crowded image, where 3% of the pixels are cosmic rays, *dfcosmic* with
+  the C++ median filter takes 34% less time than astroscrappy with a true median
+  filter on one thread, 30% less on two, and the same time on 16.
+
+The :doc:`timing comparison notebook <demos/Comparison>` has all the numbers, the
+crowded image, ``niter=4`` and the checks that were made; ``demos/benchmark.py`` in the
+repository repeats the measurement on your own machine.
 
 
 
