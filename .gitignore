@@ -70,6 +70,8 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+# copied from demos/ when the documentation is built (see docs/source/conf.py)
+docs/source/demos/
 
 # PyBuilder
 .pybuilder/
