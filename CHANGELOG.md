@@ -4,6 +4,10 @@ All notable changes to dfcosmic are listed here. The format follows [Keep a Chan
 
 ## Unreleased
 
+### Performance
+
+- Three of the five median filters of an iteration are only read at a few pixels: the two fine-structure medians at the candidate pixels, and the repair median at the flagged pixels. They are now evaluated only there, which gives exactly the same mask and cleaned image. On a 4000 x 6500 frame with few cosmic rays, `lacosmic` is 1.7 to 2.4 times as fast on the CPU, depending on the number of threads, and 2.9 times as fast on the GPU. If those pixels make up more than 10% of the image, the whole image is filtered as before; the fraction can be changed with the environment variable `DFCOSMIC_SPARSE_MEDIAN_MAX_FRACTION`. Suggested by Robert Vetter ([@robert-vetter](https://github.com/robert-vetter)) in his pyOpenSci review.
+
 ### Changed
 
 - If no gain is given, it is now estimated at every iteration, as in the original IRAF script and as documented. It used to be estimated in the first iteration only. Results with `gain=0` and `niter > 1` change slightly; results with an explicit gain are unchanged.
@@ -17,6 +21,13 @@ All notable changes to dfcosmic are listed here. The format follows [Keep a Chan
 - A NaN or infinite pixel silently gave an empty mask when the gain was estimated, and NaN at every repaired pixel when the gain was given. Non-finite pixels are now ignored and returned unchanged.
 - Big-endian arrays (e.g. from `astropy.io.fits`) and arrays with negative strides raised an error.
 - Input that is not 2D now raises a clear `ValueError`.
+
+### Timing comparison
+
+- The timing comparison with astroscrappy and lacosmic was redone so that it is like-for-like: every code runs the same number of iterations with the same parameters, in its own process, with a warm-up call and repeated timed calls. It is produced by the new `demos/benchmark.py`, which replaces the broken `demos/comparison.py`, and its results are stored with the hardware and package versions in `demos/benchmark_results.json`. The comparison now also covers a crowded image and `niter=4`, and `demos/benchmark_results_v0.1.0.json` holds the same measurement for dfcosmic 0.1.0.
+- `demos/HST.ipynb` passed the two lacosmic thresholds the wrong way round. This is corrected, and the notebook now reports how closely every mask agrees with the IRAF mask.
+- `demos/QuickExample.ipynb` no longer overwrites `demos/example_hst.png`, the six-panel figure of the paper; its own figure is now `demos/quick_example.png`.
+- The notebooks shown in the documentation are now copied from `demos/` when the documentation is built, so that there is a single copy of each.
 
 ### Documentation
 
