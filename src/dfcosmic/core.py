@@ -62,9 +62,9 @@ def lacosmic(
     Parameters
     ----------
     image : torch.Tensor|np.ndarray
-        The input image. Must be 2D. Numpy arrays of any dtype, byte order and memory
-        layout are accepted (e.g. big-endian data straight from ``astropy.io.fits``).
-        The input is never modified.
+        The input image. Must be 2D and not empty. Numpy arrays of any dtype, byte
+        order and memory layout are accepted (e.g. big-endian data straight from
+        ``astropy.io.fits``). The input is never modified.
     sigclip : float
         The detection limit for cosmic rays (sigma). Default is 4.5.
     sigfrac : float
@@ -110,8 +110,8 @@ def lacosmic(
     Raises
     ------
     ValueError
-        If the image is not 2D, if it contains no finite pixels, or if the gain
-        cannot be estimated.
+        If the image is not 2D, if it is empty, if it contains no finite pixels, or
+        if the gain cannot be estimated.
 
     Notes
     -----
@@ -229,6 +229,11 @@ def lacosmic(
                     "image must be a 2D array, but got an array with "
                     f"{image_t.ndim} dimension(s) and shape {tuple(image_t.shape)}. "
                     "Process each 2D frame separately."
+                )
+            if image_t.numel() == 0:
+                raise ValueError(
+                    "image must not be empty, but got an array with shape "
+                    f"{tuple(image_t.shape)}"
                 )
             if rss_debug:
                 _log_rss("after input cast/to(device)")

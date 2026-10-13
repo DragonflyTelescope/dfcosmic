@@ -4,6 +4,10 @@ All notable changes to dfcosmic are listed here. The format follows [Keep a Chan
 
 ## Unreleased
 
+### Fixed
+
+- An empty image, e.g. with shape `(0, 10)`, now raises a clear `ValueError`. It used to raise a `RuntimeError` from inside PyTorch.
+
 ### Documentation
 
 - The Citation section of the README gave the DOI of version 0.0.1 (`10.5281/zenodo.18451351`). It now gives the DOI that stands for all versions (`10.5281/zenodo.18451350`), the same one as the badge and `CITATION.cff`.

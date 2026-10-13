@@ -133,7 +133,7 @@ class TestArrayConversion:
 
 
 class TestShapeCheck:
-    """Tests for the 2D input requirement."""
+    """Tests for the requirement that the input is 2D and not empty."""
 
     @pytest.mark.parametrize("shape", [(50,), (3, 50, 50), (1, 1, 50, 50), ()])
     @pytest.mark.parametrize("as_tensor", [False, True])
@@ -143,3 +143,24 @@ class TestShapeCheck:
             image = torch.from_numpy(image)
         with pytest.raises(ValueError, match="must be a 2D array"):
             lacosmic(image, gain=1, readnoise=5)
+
+    @pytest.mark.parametrize("shape", [(0, 0), (0, 10), (10, 0)])
+    @pytest.mark.parametrize("as_tensor", [False, True])
+    @pytest.mark.parametrize("gain", [0.0, 1.0])
+    def test_empty_raises(self, shape, as_tensor, gain):
+        """Regression test: an empty image used to raise a torch RuntimeError."""
+        image = np.empty(shape, dtype=np.float32)
+        if as_tensor:
+            image = torch.from_numpy(image)
+        with pytest.raises(ValueError, match="must not be empty"):
+            lacosmic(image, gain=gain, readnoise=5)
+
+    @pytest.mark.parametrize("shape", [(1, 1), (1, 10), (10, 1), (2, 2)])
+    @pytest.mark.parametrize("use_cpp", [None, False])
+    def test_smallest_images_run(self, shape, use_cpp):
+        """Images smaller than the filter windows are accepted."""
+        image = np.full(shape, 100, dtype=np.float32)
+        clean, mask = lacosmic(image, gain=1, readnoise=5, use_cpp=use_cpp)
+        assert clean.shape == mask.shape == shape
+        assert not mask.any()
+        np.testing.assert_array_equal(clean, image)
