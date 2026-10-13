@@ -81,9 +81,11 @@ Once built, the extension is used automatically when `device="cpu"`. A few thing
 ## Basic Usage
 We follow the same parameter naming conventions presented in the original IRAF code.
 
-- `objlim`: The contrast limit between CR and underlying objects
-- `sigfrac`: The fractional detection limit for neighboring pixels
-- `sigclip`: The detection limit for cosmic rays
+- `objlim`: The contrast limit between CR and underlying objects (0 or more)
+- `sigfrac`: The fractional detection limit for neighboring pixels (between 0 and 1)
+- `sigclip`: The detection limit for cosmic rays (more than 0)
+
+A value outside its range raises a `ValueError`, as do a negative `gain` or `readnoise`, `niter` smaller than 1, and NaN or infinite values.
 
 The following example runs as is on a CPU. It uses a synthetic image; replace it with your own 2D image, for example from `astropy.io.fits.getdata`.
 

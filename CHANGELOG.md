@@ -4,6 +4,10 @@ All notable changes to dfcosmic are listed here. The format follows [Keep a Chan
 
 ## Unreleased
 
+### Changed
+
+- `lacosmic` now checks its parameters and raises a `ValueError` for a value outside its valid range: `sigclip` must be greater than 0, `sigfrac` between 0 and 1, `niter` at least 1, and `objlim`, `gain` and `readnoise` must not be negative. NaN and infinite values are rejected as well. These values used to be accepted silently. A negative `sigclip` or `sigfrac` flagged every pixel, a negative `readnoise` gave the same result as the positive value, a negative `gain` was estimated from the image as for `gain=0`, and `niter=0` returned the input unchanged. If your code relied on a negative `gain` for the estimate, pass `gain=0` instead.
+
 ### Fixed
 
 - An empty image, e.g. with shape `(0, 10)`, now raises a clear `ValueError`. It used to raise a `RuntimeError` from inside PyTorch.
