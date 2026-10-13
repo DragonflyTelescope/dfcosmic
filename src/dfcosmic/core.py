@@ -1,4 +1,5 @@
 import math
+import operator
 import os
 from contextlib import nullcontext
 from time import perf_counter
@@ -40,6 +41,50 @@ def _get_kernels(device: torch.device, dtype: torch.dtype):
     return cached
 
 
+def _validate_parameters(
+    sigclip: float,
+    sigfrac: float,
+    objlim: float,
+    niter: int,
+    gain: float,
+    readnoise: float,
+) -> None:
+    """Raise an error if a parameter of ``lacosmic`` is outside its valid range."""
+    for name, value in (
+        ("sigclip", sigclip),
+        ("sigfrac", sigfrac),
+        ("objlim", objlim),
+        ("gain", gain),
+        ("readnoise", readnoise),
+    ):
+        try:
+            finite = math.isfinite(value)
+        except TypeError:
+            raise TypeError(f"{name} must be a number, but got {value!r}") from None
+        if not finite:
+            raise ValueError(f"{name} must be finite, but got {value}")
+    try:
+        operator.index(niter)
+    except TypeError:
+        raise TypeError(f"niter must be an integer, but got {niter!r}") from None
+
+    if sigclip <= 0:
+        raise ValueError(f"sigclip must be greater than 0, but got {sigclip}")
+    if not 0 <= sigfrac <= 1:
+        raise ValueError(f"sigfrac must be between 0 and 1, but got {sigfrac}")
+    if objlim < 0:
+        raise ValueError(f"objlim must not be negative, but got {objlim}")
+    if niter < 1:
+        raise ValueError(f"niter must be at least 1, but got {niter}")
+    if gain < 0:
+        raise ValueError(
+            f"gain must not be negative, but got {gain}. Set gain=0 to have it "
+            "estimated from the image."
+        )
+    if readnoise < 0:
+        raise ValueError(f"readnoise must not be negative, but got {readnoise}")
+
+
 def lacosmic(
     image: torch.Tensor | np.ndarray,
     sigclip: float = 4.5,
@@ -62,22 +107,27 @@ def lacosmic(
     Parameters
     ----------
     image : torch.Tensor|np.ndarray
-        The input image. Must be 2D. Numpy arrays of any dtype, byte order and memory
-        layout are accepted (e.g. big-endian data straight from ``astropy.io.fits``).
-        The input is never modified.
+        The input image. Must be 2D and not empty. Numpy arrays of any dtype, byte
+        order and memory layout are accepted (e.g. big-endian data straight from
+        ``astropy.io.fits``). The input is never modified.
     sigclip : float
-        The detection limit for cosmic rays (sigma). Default is 4.5.
+        The detection limit for cosmic rays (sigma). Must be greater than 0. Default
+        is 4.5.
     sigfrac : float
-        The fractional detection limit for neighboring pixels. Default is 0.5.
+        The fractional detection limit for neighboring pixels. Must be between 0 and
+        1. Default is 0.5.
     objlim : float
-        The contrast limit between CR and underlying objects. Default is 1.0.
+        The contrast limit between CR and underlying objects. Must not be negative.
+        Default is 1.0.
     niter : int
-        The number of iterations to perform. Default is 1.
+        The number of iterations to perform. Must be at least 1. Default is 1.
     gain : float
-        The gain of the image in electrons/ADU. Default is 0.0, in which case the
-        gain is estimated from the image at every iteration (see Notes).
+        The gain of the image in electrons/ADU. Must not be negative. Default is 0.0,
+        in which case the gain is estimated from the image at every iteration (see
+        Notes).
     readnoise : float
-        The read noise of the image in electrons. Default is 0.0.
+        The read noise of the image in electrons. Must not be negative. Default is
+        0.0.
     device : str
         The device to use for computation, e.g. "cpu", "cuda" (NVIDIA GPU) or "mps"
         (Apple Silicon GPU). Default is "cpu".
@@ -110,8 +160,11 @@ def lacosmic(
     Raises
     ------
     ValueError
-        If the image is not 2D, if it contains no finite pixels, or if the gain
-        cannot be estimated.
+        If ``sigclip``, ``sigfrac``, ``objlim``, ``niter``, ``gain`` or ``readnoise``
+        is outside its valid range, NaN or infinite. If the image is not 2D, if it is
+        empty, if it contains no finite pixels, or if the gain cannot be estimated.
+    TypeError
+        If one of these parameters is not a number, or ``niter`` is not an integer.
 
     Notes
     -----
@@ -187,6 +240,8 @@ def lacosmic(
     ... )
     """
 
+    _validate_parameters(sigclip, sigfrac, objlim, niter, gain, readnoise)
+
     device = torch.device(device)
 
     want_cpp_median = use_cpp is not False and device.type == "cpu"
@@ -229,6 +284,11 @@ def lacosmic(
                     "image must be a 2D array, but got an array with "
                     f"{image_t.ndim} dimension(s) and shape {tuple(image_t.shape)}. "
                     "Process each 2D frame separately."
+                )
+            if image_t.numel() == 0:
+                raise ValueError(
+                    "image must not be empty, but got an array with shape "
+                    f"{tuple(image_t.shape)}"
                 )
             if rss_debug:
                 _log_rss("after input cast/to(device)")

@@ -95,11 +95,13 @@ Main Parameters
 ---------------
 There are several key parameters that a user can set depending on their specific use case:
 
-1. `objlim`: the contrast limit between cosmic rays and underlying objects
+1. `objlim`: the contrast limit between cosmic rays and underlying objects (0 or more)
 
-2. `sigfrac`: the fractional detection limit for neighboring pixels
+2. `sigfrac`: the fractional detection limit for neighboring pixels (between 0 and 1)
 
-3. `sigclip`: the detection limit for cosmic rays
+3. `sigclip`: the detection limit for cosmic rays (more than 0)
+
+A value outside its range raises a `ValueError`, as do a negative gain or readnoise, `niter` smaller than 1, and NaN or infinite values.
 
 Furthermore, the user can supply the gain and readnoise. If a gain is not supplied, then it will be estimated at each iteration, as in the original IRAF script. This estimate assumes that the sky background is still in the image: for background-subtracted frames it fails (or gives a meaningless value), so the gain has to be supplied for those.
 

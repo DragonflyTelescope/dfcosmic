@@ -2,6 +2,26 @@
 
 All notable changes to dfcosmic are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## 0.2.2 - 2026-10-13
+
+### Changed
+
+- `lacosmic` now checks its parameters and raises a `ValueError` for a value outside its valid range: `sigclip` must be greater than 0, `sigfrac` between 0 and 1, `niter` at least 1, and `objlim`, `gain` and `readnoise` must not be negative. NaN and infinite values are rejected as well. These values used to be accepted silently. A negative `sigclip` or `sigfrac` flagged every pixel, a negative `readnoise` gave the same result as the positive value, a negative `gain` was estimated from the image as for `gain=0`, and `niter=0` returned the input unchanged. If your code relied on a negative `gain` for the estimate, pass `gain=0` instead.
+
+### Fixed
+
+- An empty image, e.g. with shape `(0, 10)`, now raises a clear `ValueError`. It used to raise a `RuntimeError` from inside PyTorch.
+
+### Tests and internals
+
+- The Python examples in the README and the docs, and the example in the `lacosmic` docstring, are now run by the tests, so that they keep working as written.
+- New tests cover the `rss_debug` option, which was untested.
+
+### Documentation
+
+- The Citation section of the README gave the DOI of version 0.0.1 (`10.5281/zenodo.18451351`). It now gives the DOI that stands for all versions (`10.5281/zenodo.18451350`), the same one as the badge and `CITATION.cff`.
+- The caption of the timing figure in the README was missing `niter=1`.
+
 ## 0.2.1 - 2026-10-02
 
 ### Changed

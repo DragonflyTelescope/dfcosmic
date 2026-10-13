@@ -81,9 +81,11 @@ Once built, the extension is used automatically when `device="cpu"`. A few thing
 ## Basic Usage
 We follow the same parameter naming conventions presented in the original IRAF code.
 
-- `objlim`: The contrast limit between CR and underlying objects
-- `sigfrac`: The fractional detection limit for neighboring pixels
-- `sigclip`: The detection limit for cosmic rays
+- `objlim`: The contrast limit between CR and underlying objects (0 or more)
+- `sigfrac`: The fractional detection limit for neighboring pixels (between 0 and 1)
+- `sigclip`: The detection limit for cosmic rays (more than 0)
+
+A value outside its range raises a `ValueError`, as do a negative `gain` or `readnoise`, `niter` smaller than 1, and NaN or infinite values.
 
 The following example runs as is on a CPU. It uses a synthetic image; replace it with your own 2D image, for example from `astropy.io.fits.getdata`.
 
@@ -163,7 +165,7 @@ The comparison is like-for-like. Every code gets the same image and the same par
 
 ![Timing Comparisons](demos/comparison.png)
 
-*Runtime per 4000 × 6500 image against the number of CPU threads, with  and the same parameters in every code. Each point is the median of 15 timed calls; their range, at most 12% of the median, is smaller than the markers.*
+*Runtime per 4000 × 6500 image against the number of CPU threads, with `niter=1` and the same parameters in every code. Each point is the median of 15 timed calls; their range, at most 12% of the median, is smaller than the markers.*
 
 Median runtime in seconds over the 15 timed calls, with the minimum and maximum in brackets:
 
@@ -217,7 +219,7 @@ The default settings are in the `[tool.pytest.ini_options]` section of `pyprojec
 Contributions are welcome! [CONTRIBUTING.md](CONTRIBUTING.md) explains how to set up a development environment, run the tests and the linter, and build the documentation. Changes between releases are listed in [CHANGELOG.md](CHANGELOG.md).
 
 ## Citation
-If you use this package, please include a reference to the GitHub repository and the following Zenodo DOI: 10.5281/zenodo.18451351. Citation metadata is also available in [CITATION.cff](CITATION.cff) (the "Cite this repository" button on GitHub).
+If you use this package, please include a reference to the GitHub repository and the following Zenodo DOI: [10.5281/zenodo.18451350](https://doi.org/10.5281/zenodo.18451350). This DOI stands for all versions of `dfcosmic` and always resolves to the latest release. If you want to cite the exact version you used, each release also has its own DOI, listed on that page. Citation metadata is also available in [CITATION.cff](CITATION.cff) (the "Cite this repository" button on GitHub).
 
 
 

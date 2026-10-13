@@ -1,3 +1,7 @@
+import os
+import re
+import sys
+
 import numpy as np
 import pytest
 import torch
@@ -303,3 +307,82 @@ class TestLacosmicEdgeCases:
         # Verify outputs are valid (no NaN or Inf)
         assert not np.isnan(cleaned).any()
         assert not np.isinf(cleaned).any()
+
+
+class TestRssDebug:
+    """Tests for the memory report printed with ``rss_debug=True``."""
+
+    # "[rss] <step>: 123.4 MiB" on Linux, "unavailable" elsewhere, and the time
+    # taken by each iteration
+    LINE = re.compile(r"\[rss\] .+: (\d+\.\d MiB|unavailable|\d+\.\d\ds)")
+
+    @pytest.fixture
+    def image(self) -> np.ndarray:
+        rng = np.random.default_rng(5)
+        image = rng.normal(200, 15, (100, 100)).astype(np.float32)
+        image[rng.integers(5, 95, 20), rng.integers(5, 95, 20)] += 2000
+        return image
+
+    @pytest.mark.parametrize("gain", [0.0, 1.0])
+    @pytest.mark.parametrize("use_cpp", [None, False])
+    def test_reports_every_step_without_changing_the_result(
+        self, image, gain, use_cpp, capsys
+    ):
+        kwargs = dict(gain=gain, readnoise=5, niter=2, use_cpp=use_cpp)
+        clean_ref, mask_ref = lacosmic(image, **kwargs)
+        assert mask_ref.sum() >= 20
+        assert "[rss]" not in capsys.readouterr().out
+
+        clean, mask = lacosmic(image, rss_debug=True, **kwargs)
+        np.testing.assert_array_equal(mask, mask_ref)
+        np.testing.assert_array_equal(clean, clean_ref)
+
+        lines = capsys.readouterr().out.splitlines()
+        assert lines and all(self.LINE.fullmatch(line) for line in lines)
+        steps = [line.split(": ")[0] for line in lines]
+        for step in [
+            "[rss] start",
+            "[rss] iter 1 start",
+            "[rss] iter 1 after repair",
+            "[rss] iter 1 elapsed",
+            "[rss] iter 2 start",
+            "[rss] before cpu().numpy() return",
+        ]:
+            assert step in steps
+        assert ("[rss] iter 1 after gain estimation" in steps) == (gain == 0)
+        if sys.platform.startswith("linux"):
+            assert not [line for line in lines if line.endswith("unavailable")]
+
+    def test_without_proc_filesystem(self, image, monkeypatch, capsys):
+        """The memory in use is only known on Linux; elsewhere the run still works."""
+        real_open = open
+
+        def open_without_proc(file, *args, **kwargs):
+            if file == "/proc/self/status":
+                raise FileNotFoundError(file)
+            return real_open(file, *args, **kwargs)
+
+        monkeypatch.setattr("builtins.open", open_without_proc)
+        _, mask = lacosmic(image, gain=1, readnoise=5, rss_debug=True)
+        assert mask.sum() >= 20
+        lines = capsys.readouterr().out.splitlines()
+        assert "[rss] start: unavailable" in lines
+        assert not [line for line in lines if line.endswith("MiB")]
+
+    @pytest.mark.parametrize("previous", [None, "0", "1"])
+    @pytest.mark.parametrize("fails", [False, True])
+    def test_environment_variable_is_restored(
+        self, image, previous, fails, monkeypatch
+    ):
+        """``rss_debug`` switches the report on for the duration of the call only."""
+        if previous is None:
+            monkeypatch.delenv("DFCOSMIC_RSS_DEBUG", raising=False)
+        else:
+            monkeypatch.setenv("DFCOSMIC_RSS_DEBUG", previous)
+
+        if fails:
+            with pytest.raises(ValueError, match="must be a 2D array"):
+                lacosmic(image[None], gain=1, readnoise=5, rss_debug=True)
+        else:
+            lacosmic(image, gain=1, readnoise=5, rss_debug=True)
+        assert os.environ.get("DFCOSMIC_RSS_DEBUG") == previous

@@ -133,7 +133,7 @@ class TestArrayConversion:
 
 
 class TestShapeCheck:
-    """Tests for the 2D input requirement."""
+    """Tests for the requirement that the input is 2D and not empty."""
 
     @pytest.mark.parametrize("shape", [(50,), (3, 50, 50), (1, 1, 50, 50), ()])
     @pytest.mark.parametrize("as_tensor", [False, True])
@@ -143,3 +143,106 @@ class TestShapeCheck:
             image = torch.from_numpy(image)
         with pytest.raises(ValueError, match="must be a 2D array"):
             lacosmic(image, gain=1, readnoise=5)
+
+    @pytest.mark.parametrize("shape", [(0, 0), (0, 10), (10, 0)])
+    @pytest.mark.parametrize("as_tensor", [False, True])
+    @pytest.mark.parametrize("gain", [0.0, 1.0])
+    def test_empty_raises(self, shape, as_tensor, gain):
+        """Regression test: an empty image used to raise a torch RuntimeError."""
+        image = np.empty(shape, dtype=np.float32)
+        if as_tensor:
+            image = torch.from_numpy(image)
+        with pytest.raises(ValueError, match="must not be empty"):
+            lacosmic(image, gain=gain, readnoise=5)
+
+    @pytest.mark.parametrize("shape", [(1, 1), (1, 10), (10, 1), (2, 2)])
+    @pytest.mark.parametrize("use_cpp", [None, False])
+    def test_smallest_images_run(self, shape, use_cpp):
+        """Images smaller than the filter windows are accepted."""
+        image = np.full(shape, 100, dtype=np.float32)
+        clean, mask = lacosmic(image, gain=1, readnoise=5, use_cpp=use_cpp)
+        assert clean.shape == mask.shape == shape
+        assert not mask.any()
+        np.testing.assert_array_equal(clean, image)
+
+
+class TestParameterValidation:
+    """Tests for the valid ranges of the algorithm parameters."""
+
+    @pytest.mark.parametrize(
+        "name, value, message",
+        [
+            ("sigclip", -1, "sigclip must be greater than 0, but got -1"),
+            ("sigclip", 0, "sigclip must be greater than 0, but got 0"),
+            ("sigfrac", -1, "sigfrac must be between 0 and 1, but got -1"),
+            ("sigfrac", 1.5, "sigfrac must be between 0 and 1, but got 1.5"),
+            ("objlim", -1, "objlim must not be negative, but got -1"),
+            ("niter", 0, "niter must be at least 1, but got 0"),
+            ("niter", -1, "niter must be at least 1, but got -1"),
+            ("gain", -1, "gain must not be negative, but got -1"),
+            ("readnoise", -1, "readnoise must not be negative, but got -1"),
+        ],
+    )
+    def test_out_of_range_raises(self, frame, name, value, message):
+        """Regression test: these values used to be accepted silently."""
+        with pytest.raises(ValueError, match=message):
+            lacosmic(frame, **{**PARAMS, "gain": 1, name: value})
+
+    @pytest.mark.parametrize(
+        "name", ["sigclip", "sigfrac", "objlim", "gain", "readnoise"]
+    )
+    @pytest.mark.parametrize("value", [np.nan, np.inf, -np.inf])
+    def test_non_finite_raises(self, frame, name, value):
+        with pytest.raises(ValueError, match=f"{name} must be finite"):
+            lacosmic(frame, **{**PARAMS, "gain": 1, name: value})
+
+    @pytest.mark.parametrize(
+        "name, value, message",
+        [
+            ("sigclip", "4.5", "sigclip must be a number"),
+            ("gain", None, "gain must be a number"),
+            ("niter", 1.5, "niter must be an integer"),
+            ("niter", 2.0, "niter must be an integer"),
+        ],
+    )
+    def test_wrong_type_raises(self, frame, name, value, message):
+        with pytest.raises(TypeError, match=message):
+            lacosmic(frame, **{**PARAMS, "gain": 1, name: value})
+
+    @pytest.mark.parametrize(
+        "name, value",
+        [
+            ("sigfrac", 0),
+            ("sigfrac", 1),
+            ("objlim", 0),
+            ("gain", 0),
+            ("readnoise", 0),
+            ("niter", 1),
+        ],
+    )
+    def test_limits_of_the_ranges_are_accepted(self, frame, name, value):
+        clean, mask = lacosmic(frame, **{**PARAMS, "gain": 1, name: value})
+        assert mask.sum() > 100
+        assert np.isfinite(clean).all()
+
+    def test_invalid_parameter_is_reported_before_the_image(self):
+        """The parameters are checked first, so no work is done on the image."""
+        with pytest.raises(ValueError, match="sigclip must be greater than 0"):
+            lacosmic(np.empty((0, 0), dtype=np.float32), sigclip=-1)
+
+    def test_numpy_scalars_are_accepted(self, frame):
+        """Numpy scalars, e.g. from a FITS header, give the same result as floats."""
+        clean_ref, mask_ref = lacosmic(
+            frame, sigclip=4.5, sigfrac=0.3, objlim=4, niter=2, gain=1, readnoise=5
+        )
+        clean, mask = lacosmic(
+            frame,
+            sigclip=np.float32(4.5),
+            sigfrac=np.float64(0.3),
+            objlim=np.int64(4),
+            niter=np.int64(2),
+            gain=np.float32(1),
+            readnoise=np.float64(5),
+        )
+        np.testing.assert_array_equal(mask, mask_ref)
+        np.testing.assert_array_equal(clean, clean_ref)

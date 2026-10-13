@@ -42,6 +42,8 @@ pytest
 
 The settings are in the `[tool.pytest.ini_options]` section of `pyproject.toml`, and a coverage report is printed at the end. The tests for the C++ median filter are skipped if the extension has not been built, and the regression test against the IRAF mask is skipped if `astropy` is not installed.
 
+The tests also run every Python code block in the README and in `docs/source/*.rst`, and the example in the `lacosmic` docstring. A new example therefore has to be self-contained and run on a CPU.
+
 Please add tests for new behaviour and for bug fixes.
 
 ## Code style
