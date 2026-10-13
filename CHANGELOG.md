@@ -2,6 +2,13 @@
 
 All notable changes to dfcosmic are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Documentation
+
+- The Citation section of the README gave the DOI of version 0.0.1 (`10.5281/zenodo.18451351`). It now gives the DOI that stands for all versions (`10.5281/zenodo.18451350`), the same one as the badge and `CITATION.cff`.
+- The caption of the timing figure in the README was missing `niter=1`.
+
 ## 0.2.1 - 2026-10-02
 
 ### Changed
