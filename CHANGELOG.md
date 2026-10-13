@@ -12,6 +12,11 @@ All notable changes to dfcosmic are listed here. The format follows [Keep a Chan
 
 - An empty image, e.g. with shape `(0, 10)`, now raises a clear `ValueError`. It used to raise a `RuntimeError` from inside PyTorch.
 
+### Tests and internals
+
+- The Python examples in the README and the docs, and the example in the `lacosmic` docstring, are now run by the tests, so that they keep working as written.
+- New tests cover the `rss_debug` option, which was untested.
+
 ### Documentation
 
 - The Citation section of the README gave the DOI of version 0.0.1 (`10.5281/zenodo.18451351`). It now gives the DOI that stands for all versions (`10.5281/zenodo.18451350`), the same one as the badge and `CITATION.cff`.
